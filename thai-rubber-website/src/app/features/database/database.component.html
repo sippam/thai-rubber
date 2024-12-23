@@ -1,0 +1,133 @@
+<div class="flex flex-col items-center w-full">
+  <div class="w-4/5 flex flex-col items-center gap-6">
+    <div class="w-full relative flex items-center justify-center">
+      <mat-icon
+        class="absolute left-0 cursor-pointer"
+        [routerLink]="['/home']"
+        routerLinkActive="router-link-active"
+        >arrow_back_ios</mat-icon
+      >
+      <div class="font-bold text-2xl md:text-4xl">ฐานข้อมูลโรคในยางพารา</div>
+    </div>
+
+    <form [formGroup]="filterGroup" class="flex flex-col items-center">
+      <div class="grid grid-cols-1 md:grid-cols-5 md:gap-4 xl:gap-8 w-full justify-center items-center">
+        <mat-form-field>
+          <mat-label>โรค</mat-label>
+          <mat-select name="dicease" formControlName="dicease">
+            <mat-option value="test">Test</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <app-search-select
+          label="จังหวัด"
+          placeholder="ค้นหาจังหวัด"
+          [options]="provinces"
+          [selectedValue]="selectedProvince"
+          (valueSelected)="selectProvince($event)"
+        ></app-search-select>
+
+        <app-search-select
+          label="อำเภอ"
+          placeholder="ค้นหาอำเภอ"
+          [options]="districts"
+          [selectedValue]="selectedDistrict"
+          (valueSelected)="selectDistrict($event)"
+        ></app-search-select>
+
+        <app-search-select
+          label="ตำบล"
+          placeholder="ค้นหาตำบล"
+          [options]="tambons"
+          [selectedValue]="selectedTambon"
+          (valueSelected)="selectTambon($event)"
+        ></app-search-select>
+
+        <app-search-select
+          label="พันธ์ุยาง"
+          placeholder="ค้นหาพันธ์ุยาง"
+          [options]="typeRubber"
+          [selectedValue]="selectedTypeRubber"
+          (valueSelected)="selectTypeRubber($event)"
+        ></app-search-select>
+      </div>
+
+      <div class="w-full flex justify-center">
+        <mat-form-field class="md:w-2/5">
+          <mat-label>เลือกช่วงเวลา</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate formControlName="start" placeholder="ตั้งแต่" />
+            <input matEndDate formControlName="end" placeholder="จนถึง" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+    </form>
+    <div class="flex flex-col-reverse md:grid md:grid-cols-[68%,4%,28%] w-full items-stretch">
+      <!-- Left Column -->
+      <div class="flex-1 flex flex-col">
+        <div class="mb-2">ข้อมูล</div>
+        <div class="bg-[#E8E8E8] flex items-center justify-center p-6 grow">
+          <p class="text-center">ตารางข้อมูลปัจจัยต่างๆ ที่มีในฐานข้อมูล</p>
+        </div>
+      </div>
+      <div></div>
+      <!-- Right Column -->
+      <div class="flex-1 flex flex-col items-center md:items-start">
+        <div class="w-full mb-2 justify-start">ปัจจัยที่ต้องการแสดงผล</div>
+        <form
+          [formGroup]="factorGroup"
+          class="w-fit flex flex-col bg-[#E8E8E8] p-4 grow"
+        >
+          @for (factor of factor_label; track $index) {
+          <mat-checkbox [formControlName]="factor.form_name">{{
+            factor.label
+          }}</mat-checkbox>
+          }
+        </form>
+      </div>
+    </div>    
+
+    <div class="flex justify-center md:grid md:grid-cols-[68%,4%,28%] w-full">
+      <div class="text-center">
+        <button mat-flat-button color="primary">ดาวน์โหลดชุดข้อมูล</button>
+      </div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <div class="border-b-[1px] border-black w-full"></div>
+
+    <div>ฐานข้อมูลรูปภาพโรคในยางพารา</div>
+    <form [formGroup]="databaseGroup" class="flex flex-col md:flex-row items-center md:gap-4">
+      <mat-form-field class="h-full flex items-center">
+        <mat-label>โรค</mat-label>
+        <mat-select name="dicease" formControlName="dicease">
+          <mat-option value="test">Test</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="h-full flex items-center">
+        <mat-label>ระดับความรุนแรง</mat-label>
+        <mat-select name="disease_level" formControlName="disease_level">
+          <mat-option value="test">Test</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <div class="flex flex-col md:grid md:grid-cols-[70%,30%] gap-6 items-center">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="w-64 h-64 bg-[#E8E8E8]"></div>
+        <div class="w-64 h-64 bg-[#E8E8E8]"></div>
+      </div>
+      <div>
+        <div>จำนวนรูปภาพทั้งหมด 600 รูป</div>
+        <button mat-flat-button color="primary">ดาวน์โหลดรูปภาพทั้งหมด</button>
+      </div>
+    </div>
+  </div>
+</div>

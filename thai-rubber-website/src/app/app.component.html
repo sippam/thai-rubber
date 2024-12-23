@@ -1,0 +1,18 @@
+<div class="flex flex-col min-h-screen">
+  <!-- Navbar -->
+  @if(!hideNavbar) {
+  <app-navbar></app-navbar>
+  }
+
+  <!-- Main Content -->
+  <div class="flex-grow mt-8">
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Footer -->
+  @if(!hideNavbar) {
+  <footer class="w-full bottom-0 h-12 bg-[#06693A] mt-8">
+    <!-- <div class="text-stone-50 sm:text-rose-700 md:text-cyan-400 lg:text-lime-300 xl:text-violet-700 2xl:text-amber-400">wow</div> -->
+  </footer>
+  }
+</div>

@@ -1,0 +1,22 @@
+<mat-form-field class="w-full">
+  <mat-label>{{ label }}</mat-label>
+  <input
+    matInput
+    [placeholder]="placeholder"
+    [formControl]="formControl"
+    [matAutocomplete]="autoValue"
+    (focus)="resetFilter()"
+  />
+  <mat-autocomplete
+    #autoValue="matAutocomplete"
+    (optionSelected)="selectValue($event.option.value)"
+  >
+    @if(!formControl.value || formControl.value.length === 0) {
+    <mat-option disabled>กรุณากรอกตัวอักษรอย่างน้อย 1 ตัว</mat-option>
+    } @for (filter of filteredFrom | async; track $index) {
+    <mat-option [value]="filter">
+      {{ filter.name_th }}
+    </mat-option>
+    }
+  </mat-autocomplete>
+</mat-form-field>

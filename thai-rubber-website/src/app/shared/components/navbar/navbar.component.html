@@ -1,0 +1,39 @@
+<div
+  class="w-full bg-[#06693A] text-white py-4 flex justify-between items-center px-8 relative"
+>
+  <!-- โลโก้ -->
+  <div class="text-lg font-bold">RD Snap</div>
+  @if (userProfile) {
+  <!-- โปรไฟล์ -->
+  <div class="relative">
+    <!-- รูปโปรไฟล์ -->
+    <img
+      [src]="userProfile.pictureUrl"
+      alt="profile"
+      class="w-8 h-8 rounded-full cursor-pointer"
+      (click)="toggleMenu()"
+    />
+
+    <!-- เมนู Dropdown -->
+    @if (isMenuOpen) {
+    <div
+      class="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg z-50"
+    >
+      <!-- Header -->
+      <div class="flex items-center p-4 border-b">
+        <div>
+          <p class="font-semibold">{{ userProfile.displayName }}</p>
+        </div>
+      </div>
+
+      <!-- ปุ่ม Logout -->
+      <div class="p-4">
+        <button mat-flat-button color="warn" (click)="logout()">
+          ออกจากระบบ
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

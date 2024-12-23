@@ -1,0 +1,95 @@
+<div class="flex flex-col items-center w-full">
+  <div class="w-4/5 flex flex-col items-center gap-6">
+    <div class="w-full relative flex items-center justify-center">
+      <mat-icon
+        class="absolute left-0 cursor-pointer"
+        [routerLink]="['/home']"
+        routerLinkActive="router-link-active"
+        >arrow_back_ios</mat-icon
+      >
+      <div class="hidden md:visible font-bold text-4xl">
+        การทำงานของ Adaptive Model
+      </div>
+      <div class="md:hidden font-bold text-2xl text-center">
+        <div>การทำงานของ</div>
+        <div>Adaptive Model</div>
+      </div>
+    </div>
+
+    <div class="w-full flex flex-col justify-start">
+      <form
+        [formGroup]="filterGroup"
+        class="w-full flex flex-col md:flex-row md:gap-4 lg:gap-8"
+      >
+        <app-search-select
+          label="จังหวัด"
+          placeholder="ค้นหาจังหวัด"
+          [options]="provinces"
+          [selectedValue]="selectedProvince"
+          (valueSelected)="selectProvince($event)"
+        ></app-search-select>
+
+        <app-search-select
+          label="อำเภอ"
+          placeholder="ค้นหาอำเภอ"
+          [options]="districts"
+          [selectedValue]="selectedDistrict"
+          (valueSelected)="selectDistrict($event)"
+        ></app-search-select>
+
+        <app-search-select
+          label="ตำบล"
+          placeholder="ค้นหาตำบล"
+          [options]="tambons"
+          [selectedValue]="selectedTambon"
+          (valueSelected)="selectTambon($event)"
+        ></app-search-select>
+      </form>
+      <div>
+        <div>รายชื่อเกษตกร</div>
+        <div class="w-full bg-[#E8E8E8] h-96"></div>
+      </div>
+    </div>
+
+    <div class="w-full border-b-[1px] border-black"></div>
+
+    <div class="w-full flex justify-start">
+      <div class="grid grid-cols-3">
+        <div class="pr-4">
+          <span class="font-bold">เกษตกร</span> : {{ mockData.farmer }}
+        </div>
+        <div class="pr-4">
+          <span class="font-bold">ที่ตั้ง :</span> {{ mockData.address }}
+        </div>
+        <div class="pr-4">
+          <span class="font-bold">พื้นที่ :</span> {{ mockData.area }}
+        </div>
+        <div class="pr-4">
+          <span class="font-bold">ลักษณะพื้นที่ :</span>
+          {{ mockData.area_characteristic }}
+        </div>
+        <div class="pr-4">
+          <span class="font-bold">ลักษณะดิน :</span> {{ mockData.soil }}
+        </div>
+        <div class="pr-4">
+          <span class="font-bold">ชื่อพันธุ์ยาง :</span>
+          {{ mockData.rubber_type }}
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full grid grid-cols-[68%,4%,28%] items-stretch">
+      <div class="bg-[#E8E8E8] flex items-center justify-center"></div>
+
+      <div></div>
+
+      <div class="flex flex-col gap-4 h-full py-16">
+        <div class="w-full h-12 bg-[#E8E8E8]"></div>
+        <div class="w-full h-12 bg-[#E8E8E8]"></div>
+        <div class="w-full h-12 bg-[#E8E8E8]"></div>
+      </div>
+    </div>
+
+    <div class="w-3/5 h-48 bg-[#E8E8E8]"></div>
+  </div>
+</div>

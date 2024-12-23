@@ -1,0 +1,41 @@
+<div class="w-full flex flex-col items-center">
+  <div class="w-4/5 flex flex-col items-center">
+    <div class="font-bold text-3xl md:text-4xl mb-8">Rubber Disease Snap</div>
+    <div class="font-bold text-lg md:text-xl text-center">
+      แพลตฟอร์มเพื่อความยั่งยืน......................................
+    </div>
+    <div
+      class="w-3/5 md:w-full lg:w-4/5 xl:w-3/5 flex mt-4 md:mt-0 flex-col md:flex-row justify-between mb-8"
+    >
+      <div
+        class="w-full text-center flex flex-col justify-center border-b-[1px] md:border-b-0 md:border-r-[1px] border-black mb-4 pb-4 md:pb-0 md:mb-0"
+      >
+        <div class="flex justify-center gap-4">
+          <img src="assets/line-logo.png" alt="line" class="w-32 h-32" />
+          <img
+            src="assets/rd-snap-line-add-friend.png"
+            alt="qrcode"
+            class="w-32 h-32"
+          />
+        </div>
+        <div class="font-bold text-2xl">เกษตกร</div>
+      </div>
+      <div class="w-full flex flex-col items-center">
+        @for (item of redirect; track $index) {
+        <div
+          [routerLink]="item.redirect"
+          [style.backgroundColor]="item.bg"
+          class="w-full max-w-[250px] text-center py-1 my-2 font-bold cursor-pointer"
+        >
+          {{ item.text }}
+        </div>
+        }
+        <div class="font-bold text-2xl">เจ้าหน้าที่</div>
+      </div>
+    </div>
+    <div class="w-3/5 border-b-[1px] border-black md:mt-4"></div>
+    <div class="font-bold text-xl mt-8">
+      Rubber Tree Disease Monitoring Dashboard
+    </div>
+  </div>
+</div>
