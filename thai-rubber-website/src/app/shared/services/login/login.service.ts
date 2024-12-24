@@ -10,7 +10,7 @@ export class LoginService {
   constructor(private http: HttpClient) {}
 
   lineLogin(code: string) {
-    return this.http.post('http://localhost:3000/line/login', { code }).pipe();
+    return this.http.post(`${env.api_url}/line/login`, { code }).pipe();
   }
 
   getUserProfile(token: string): Observable<any> {
