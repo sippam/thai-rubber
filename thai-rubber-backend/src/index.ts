@@ -6,7 +6,7 @@ const cors = require("cors");
 const app: Application = express();
 const port: number = 3000;
 app.use(
-  cors({ origin: ["http://localhost:4200", "https://rd-snap.vercel.app/"] })
+  cors({ origin: ["http://localhost:4200", "https://rd-snap.vercel.app"] })
 );
 // Middleware for parsing JSON
 app.use(express.json());
