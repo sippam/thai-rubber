@@ -17,7 +17,6 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "baseHref": "/thai-rubber-website/",
             "outputPath": "dist/thai-rubber-website",
             "index": "src/index.html",
             "browser": "src/main.ts",
