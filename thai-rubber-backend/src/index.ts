@@ -12,8 +12,8 @@ app.use(
 app.use(express.json());
 
 // Mount the router at the /line endpoint
-app.use("/line", lineLoginRouter);
-app.use("/line", lineUserProfile);
+app.use("/api/line", lineLoginRouter);
+app.use("/api/line", lineUserProfile);
 
 // Start the server
 app.listen(port, () => {

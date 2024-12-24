@@ -13,7 +13,7 @@ export const routes: Routes = [
     component: LandingPageComponent,
   },
   {
-    path: 'callback',
+    path: 'line/callback',
     component: CallbackComponent,
   },
   {
