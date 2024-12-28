@@ -13,13 +13,21 @@ export class LoginService {
     return this.http.post(`${env.api_url}/line/login`, { code }).pipe();
   }
 
-  getUserProfile(token: string): Observable<any> {
+  getUserProfile(): Observable<any> {
     return this.http
-      .get(`${env.api_url}/line/profile/me`, {
+      .get(`${env.api_url}/user/me`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       })
       .pipe();
+  }
+
+  register(data: any) {
+    return this.http.post(`${env.api_url}/register`, data).pipe();
+  }
+
+  login(data: any) {
+    return this.http.post(`${env.api_url}/login`, data).pipe();
   }
 }

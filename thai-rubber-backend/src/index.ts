@@ -1,6 +1,7 @@
 import express, { Application } from "express";
-import lineLoginRouter from "./routes/line-login"; // Ensure this is a TypeScript file or compiled JS
+import lineLoginRouter from "./routes/login"; // Ensure this is a TypeScript file or compiled JS
 import lineUserProfile from "./routes/line-profile";
+import user from "./routes/user";
 const cors = require("cors");
 
 const app: Application = express();
@@ -12,8 +13,9 @@ app.use(
 app.use(express.json());
 
 // Mount the router at the /line endpoint
-app.use("/api/line", lineLoginRouter);
-app.use("/api/line", lineUserProfile);
+app.use("/api", lineLoginRouter);
+app.use("/api", lineUserProfile);
+app.use("/api", user);
 
 // Start the server
 app.listen(port, () => {

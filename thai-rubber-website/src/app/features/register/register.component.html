@@ -1,0 +1,119 @@
+<div class="fixed inset-0 flex flex-col justify-center items-center">
+  <div class="text-center text-2xl md:text-4xl mb-8">สมัครสมาชิก</div>
+  <div class="w-full flex justify-center">
+    <form
+      [formGroup]="register"
+      (ngSubmit)="onSubmit()"
+      class="w-3/5 flex flex-col justify-center items-center space-y-4"
+    >
+      <mat-form-field class="w-64">
+        <mat-label>อีเมล</mat-label>
+        <input
+          matInput
+          placeholder="pat@example.com"
+          formControlName="email"
+          required
+        />
+        @if(register.get('email')!.errors?.['required']) {
+        <mat-error>กรุณากรอกอีเมล</mat-error>
+        } @else if(register.get('email')!.errors?.['email']) {
+        <mat-error>กรุณากรอกอีเมลให้ถูกต้อง</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-64">
+        <mat-label>กรอกรหัสผ่าน</mat-label>
+        <input
+          matInput
+          formControlName="password"
+          [type]="hidepassword() ? 'password' : 'text'"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="clickTogglePassword($event)"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="hidepassword()"
+        >
+          <mat-icon>{{
+            hidepassword() ? "visibility_off" : "visibility"
+          }}</mat-icon>
+        </button>
+        @if (password?.hasError('required')) {
+        <mat-error>กรุณากรอกรหัสผ่าน</mat-error>
+        } @if (password?.hasError('minlength')) {
+        <mat-error>รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-64">
+        <mat-label>กรอกรหัสผ่านอีกครั้ง</mat-label>
+        <input
+          matInput
+          formControlName="password_confirm"
+          [type]="hidepassword_confirm() ? 'password' : 'text'"
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="clickTogglePasswordConfirm($event)"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="hidepassword_confirm()"
+        >
+          <mat-icon>{{
+            hidepassword_confirm() ? "visibility_off" : "visibility"
+          }}</mat-icon>
+        </button>
+        @if (password?.hasError('required')) {
+        <mat-error>กรุณากรอกรหัสผ่าน</mat-error>
+        } @if (register.get('password_confirm')?.hasError('confirmedValidator'))
+        {
+        <mat-error>รหัสผ่านไม่ตรงกัน</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-64">
+        <mat-label>ชื่อจริง-นามสกุล</mat-label>
+        <input
+          matInput
+          placeholder="ชื่อจริง-นามสกุล"
+          formControlName="name"
+          required
+        />
+        @if (register.get('name')!.invalid) {
+        <mat-error>กรุณากรอกชื่อจริง-นามสกุล</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-64">
+        <mat-label>เบอร์โทรศัพท์</mat-label>
+        <input
+          matInput
+          placeholder="เบอร์โทรศัพท์"
+          formControlName="tel"
+          required
+          (input)="onInputTel($event)"
+          maxlength="10"
+        />
+        @if (register.get('tel')!.invalid) {
+        <mat-error>กรุณากรอกเบอร์โทรศัพท์</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-64">
+        <mat-label>ตำแหน่ง</mat-label>
+        <input
+          matInput
+          placeholder="ตำแหน่ง"
+          formControlName="position"
+          required
+        />
+        @if (register.get('position')!.invalid) {
+        <mat-error>กรุณากรอกตำแหน่ง</mat-error>
+        }
+      </mat-form-field>
+
+      <button mat-flat-button color="primary">ยืนยัน</button>
+    </form>
+  </div>
+</div>

@@ -6,14 +6,9 @@
   @if (userProfile) {
   <!-- โปรไฟล์ -->
   <div class="relative">
-    <!-- รูปโปรไฟล์ -->
-    <img
-      [src]="userProfile.pictureUrl"
-      alt="profile"
-      class="w-8 h-8 rounded-full cursor-pointer"
-      (click)="toggleMenu()"
-    />
-
+    <div (click)="toggleMenu()">
+      <p class="font-semibold">{{ userProfile.name }}</p>
+    </div>
     <!-- เมนู Dropdown -->
     @if (isMenuOpen) {
     <div
@@ -22,7 +17,9 @@
       <!-- Header -->
       <div class="flex items-center p-4 border-b">
         <div>
-          <p class="font-semibold">{{ userProfile.displayName }}</p>
+          <p>ชื่อ: <span class="font-semibold">{{ userProfile.name }}</span></p>
+          <p>เบอร์โทรศัพท์: <span class="font-semibold">{{ userProfile.tel }}</span></p>
+          <p>ตำแหน่ง: <span class="font-semibold">{{ userProfile.position }}</span></p>
         </div>
       </div>
 

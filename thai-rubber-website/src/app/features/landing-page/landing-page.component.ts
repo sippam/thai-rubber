@@ -11,11 +11,4 @@ import { AuthService } from '@core/services/auth.service';
   styleUrl: './landing-page.component.scss',
 })
 export class LandingPageComponent {
-  #authService = inject(AuthService);
-
-  constructor() {}
-
-  lineLogin() {
-    this.#authService.loginWithLine();
-  }
 }

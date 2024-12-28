@@ -7,12 +7,7 @@ import { environment as env } from '@environments/environment';
 })
 export class AuthService {
   constructor(private router: Router) {}
-
-  loginWithLine(): void {
-    const line_url = env.line_url;
-    window.location.href = line_url;
-  }
-
+  
   isAuthenticated(): boolean {
     return !!localStorage.getItem('access_token');
   }

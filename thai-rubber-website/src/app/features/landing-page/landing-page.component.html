@@ -1,13 +1,22 @@
 <div class="w-full flex flex-col justify-center items-center">
   <div class="text-center font-bold text-7xl mt-60">RD snap</div>
-  <div class="mt-8">
+  <div class="mt-8 space-y-4 md:space-y-0 md:flex md:gap-4">
     <button
       mat-flat-button
       color="primary"
-      (click)="lineLogin()"
       class="w-full flex items-center justify-center"
+      routerLink="login"
     >
-      <span class="text-white font-medium">Line login</span>
+      <span class="text-white font-medium">Login</span>
+    </button>
+
+    <button
+      mat-flat-button
+      color="primary"
+      class="w-full flex items-center justify-center"
+      routerLink="register"
+    >
+      <span class="text-white font-medium">Register</span>
     </button>
   </div>
 </div>

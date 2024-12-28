@@ -28,8 +28,10 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.userService.userProfile$.subscribe((profile) => {
+      console.log('profile', profile);
+      
       if (profile && profile.status === 200) {
-        this.userProfile = profile.profile; // รับข้อมูลโปรไฟล์แบบ reactive
+        this.userProfile = profile.data; // รับข้อมูลโปรไฟล์แบบ reactive
       }
     });
   }

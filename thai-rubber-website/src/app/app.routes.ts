@@ -5,7 +5,8 @@ import { DatabaseComponent } from './features/database/database.component';
 import { AdaptiveModelComponent } from './features/adaptive-model/adaptive-model.component';
 import { HomeComponent } from './features/home/home.component';
 import { AuthGuard } from './core/guards/auth.guard';
-import { CallbackComponent } from './features/callback/callback.component';
+import { RegisterComponent } from './features/register/register.component';
+import { LoginComponent } from './features/login/login.component';
 
 export const routes: Routes = [
   {
@@ -13,13 +14,17 @@ export const routes: Routes = [
     component: LandingPageComponent,
   },
   {
-    path: 'line/callback',
-    component: CallbackComponent,
-  },
-  {
     path: 'home',
     component: HomeComponent,
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
   },
   {
     path: 'follow-disease',

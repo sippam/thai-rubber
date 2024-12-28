@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         // เช็ค path ปัจจุบัน
-        const hiddenRoutes = ['/', '/callback'];
+        const hiddenRoutes = ['/', '/callback', '/register', '/login']; 
         console.log(
           'hiddenRoutes.includes(event.url)',
           hiddenRoutes.includes(event.url)
@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
 
     if (accessToken && !this.userService.getUserProfile()) {
       // ดึงข้อมูลโปรไฟล์ถ้ายังไม่มีใน service
-      this.loginService.getUserProfile(accessToken).subscribe(
+      this.loginService.getUserProfile().subscribe(
         (profile) => {
           this.userService.setUserProfile(profile); // เซ็ตโปรไฟล์ใน service
         },

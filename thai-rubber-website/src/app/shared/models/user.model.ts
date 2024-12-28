@@ -1,6 +1,8 @@
 export interface UserProfile {
-  userId: string;
-  displayName: string;
-  statusMessage: string;
-  pictureUrl: string;
+  email: string;
+  name: string;
+  tel: string;
+  position: string;
 }
+
+export interface Register {}
