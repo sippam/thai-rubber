@@ -326,6 +326,9 @@ def handle_text_message(event):
         )
         line_bot_api.reply_message(
             event.reply_token, TextSendMessage(text=format_text))
+        
+    if text == "ทำนายผล":
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ส่งรูปภาพที่ต้องการทำนายผล"))
 
     if text in ["ลักษณะอาการของโรค", "ระยะของโรค", "สาเหตุการเกิดโรค", "สภาพที่เหมาะสมต่อการระบาด", "การป้องกัน", "วิธีรักษา"]:
         print("kutttttttttttttttt", text)
