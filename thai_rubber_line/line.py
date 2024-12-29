@@ -10,7 +10,7 @@ import json
 from upload_image import upload_image
 from open_meteo import get_weather
 from geocoding import get_geocode
-
+from wunderground import get_wether_wunderground
 import os
 from dotenv import load_dotenv
 
@@ -196,7 +196,8 @@ def handle_text_message(event):
         elif state == "rubber_type":
             registration_data[user_id]['rubber_type'] = text
             user_register_state[user_id] = "weather_station"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="มีเครื่องวัดสภาพอากาศหรือไม่ (พิมพ์ 'มี' หรือ 'ไม่มี')"))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(
+                text="มีเครื่องวัดสภาพอากาศหรือไม่ (พิมพ์ 'มี' หรือ 'ไม่มี')"))
 
         elif state == "weather_station":
             if text == "มี":
@@ -222,53 +223,12 @@ def handle_text_message(event):
 
             # Editing process
         elif state.startswith("edit_"):
-
-            # field = state.replace("edit_", "")
-            # mydb, mycursor = connect_database()
-            # query = f"UPDATE users SET {field} = %s WHERE id = %s"
-            # values = (text, user_id)
-            # mycursor.execute(query, values)
-            # mydb.commit()
-            # user_register_state.pop(user_id)
-
             line_bot_api.reply_message(
                 event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
 
         else:
             line_bot_api.reply_message(
                 event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
-
-            # line_bot_api.reply_message(event.reply_token, TextSendMessage(text="กรุณากรอกที่อยู่ของคุณ"))
-
-    # elif user_id in user_register_state and user_register_state[user_id] == "awaiting_tel" and not is_register:
-    #     try:
-    #         user_register_state[user_id] = "awaiting_address"
-    #         data = {
-    #             'id': user_id,
-    #             'line_name': profile.display_name,
-    #             'tel': text
-    #         }
-    #         register_user(mydb, mycursor, data)
-
-    #         # address_format = get_geocode(text)
-    #         # data = {
-    #         #     'id': user_id,
-    #         #     'address': text,
-    #         #     'address_format': address_format["formatted_address"],
-    #         #     'latitude': float(address_format["latitude"]),
-    #         #     'longitude': float(address_format["longitude"])
-    #         # }
-    #         # change_user_address(mydb, mycursor, data)
-
-    #         # user_register_state.pop(user_id)
-    #         # line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
-    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="กรุณากรอกที่อยู่ของคุณ"))
-
-    #         # line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
-
-    #     except Exception as e:
-    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
-    # elif user_id in user_register_state and user_register_state[user_id] == "awaiting_address" and is_register:
 
     if text == "แก้ไขที่อยู่":
         user_register_state[user_id] = "awaiting_new_address"
@@ -299,36 +259,58 @@ def handle_text_message(event):
                 event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
 
     if text == "สภาพอากาศ":
-        user_id = event.source.user_id
-        latitude, longitude = get_lat_long_user(mydb, mycursor, user_id)
+        mycursor.execute("USE thai_rubber")
+        mycursor.execute(
+            "SELECT weather_station, weather_serial FROM plantation WHERE id = %s", (user_id,))
+        result = mycursor.fetchone()
+        have_weather_station = result[0]
 
-        daily_data = get_weather(latitude, longitude)
-        temperature_2m_avg = daily_data["temperature_2m_avg"][0]
-        precipitation_sum = daily_data["precipitation_sum"][0]
-        precipitation_hours = daily_data["precipitation_hours"][0]
-        wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
-        wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
+        if (have_weather_station):
+            get_wether_wunderground(result[1])
+            
+            format_text = (
+                f"สภาพอากาศวันนี้\n"
+                f"อุณหภูมิเฉลี่ย: {1}°C\n"
+                f"ปริมาณน้ำฝน: {1} mm\n"
+                f"ชั่วโมงที่มีฝน: {1} ชั่วโมง\n"
+                f"ความเร็วลมสูงสุด: {1} m/s\n"
+                f"ทิศทางลม: {1}°"
+            )
+            
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text=format_text))
+        else:
+            user_id = event.source.user_id
+            latitude, longitude = get_lat_long_user(mydb, mycursor, user_id)
 
-        temperature_2m_avg = round(float(temperature_2m_avg), 2)
-        precipitation_sum = round(float(precipitation_sum), 2)
-        precipitation_hours = round(float(precipitation_hours), 2)
-        wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
-        wind_direction_10m_dominant = round(
-            float(wind_direction_10m_dominant), 2)
+            daily_data = get_weather(latitude, longitude)
+            temperature_2m_avg = daily_data["temperature_2m_avg"][0]
+            precipitation_sum = daily_data["precipitation_sum"][0]
+            precipitation_hours = daily_data["precipitation_hours"][0]
+            wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
+            wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
 
-        format_text = (
-            f"สภาพอากาศวันนี้\n"
-            f"อุณหภูมิเฉลี่ย: {temperature_2m_avg}°C\n"
-            f"ปริมาณน้ำฝน: {precipitation_sum} mm\n"
-            f"ชั่วโมงที่มีฝน: {precipitation_hours} ชั่วโมง\n"
-            f"ความเร็วลมสูงสุด: {wind_speed_10m_max} m/s\n"
-            f"ทิศทางลม: {wind_direction_10m_dominant}°"
-        )
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text=format_text))
-        
+            temperature_2m_avg = round(float(temperature_2m_avg), 2)
+            precipitation_sum = round(float(precipitation_sum), 2)
+            precipitation_hours = round(float(precipitation_hours), 2)
+            wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
+            wind_direction_10m_dominant = round(
+                float(wind_direction_10m_dominant), 2)
+
+            format_text = (
+                f"สภาพอากาศวันนี้\n"
+                f"อุณหภูมิเฉลี่ย: {temperature_2m_avg}°C\n"
+                f"ปริมาณน้ำฝน: {precipitation_sum} mm\n"
+                f"ชั่วโมงที่มีฝน: {precipitation_hours} ชั่วโมง\n"
+                f"ความเร็วลมสูงสุด: {wind_speed_10m_max} m/s\n"
+                f"ทิศทางลม: {wind_direction_10m_dominant}°"
+            )
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text=format_text))
+
     if text == "ทำนายผล":
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="ส่งรูปภาพที่ต้องการทำนายผล"))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(
+            text="ส่งรูปภาพที่ต้องการทำนายผล"))
 
     if text in ["ลักษณะอาการของโรค", "ระยะของโรค", "สาเหตุการเกิดโรค", "สภาพที่เหมาะสมต่อการระบาด", "การป้องกัน", "วิธีรักษา"]:
         print("kutttttttttttttttt", text)
