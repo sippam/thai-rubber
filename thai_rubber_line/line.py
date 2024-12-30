@@ -1,4 +1,4 @@
-from database import connect_database, initialize_db, register_user, change_user_address, have_user, get_lat_long_user, change_user_tel, change_user_area, change_user_land_type, change_user_soil_type, change_user_rubber_type, change_user_weather_station, change_user_weather_serial, get_user_data
+from database import connect_database, initialize_db, register_user, change_user_address, have_user, get_lat_long_user, change_user_tel, change_user_area, change_user_land_type, change_user_soil_type, change_user_rubber_type, change_user_weather_station, change_user_weather_serial, get_user_data, hour_add_weather
 from line_flex_message import flex_message_function
 
 from flask import Flask, request, abort
@@ -13,6 +13,7 @@ from geocoding import get_geocode
 from wunderground import get_wether_wunderground
 import os
 from dotenv import load_dotenv
+import threading
 
 load_dotenv()
 
@@ -34,6 +35,16 @@ LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
+# ฟังก์ชันตั้งเวลา Timeout แบบ Loop 5 วินาที
+def set_timeout_loop():
+    def timeout_action():
+            # print("loop")
+            set_timeout_loop()  # เรียกตัวเองซ้ำเพื่อ Loop
+    threading.Timer(5.0, timeout_action).start()
+
+set_timeout_loop()
+mydb, mycursor = connect_database()
+hour_add_weather(mydb, mycursor)
 
 @app.route("/webhook", methods=['POST'])
 def webhook():

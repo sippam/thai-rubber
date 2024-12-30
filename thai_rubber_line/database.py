@@ -1,6 +1,8 @@
 import mysql.connector
 import os
 import dotenv
+from wunderground import get_wether_wunderground
+from open_meteo import get_weather
 
 dotenv.load_dotenv()
 
@@ -284,3 +286,45 @@ def get_user_data(mydb, mycursor, id):
         myresult['area'], myresult['land_type'], myresult['soil_type'], myresult['rubber_type'] = data[0], data[1], data[2], data[3]
         myresult['weather_serial'] = "-"
     return myresult
+
+def hour_add_weather(mydb, mycursor):
+    mycursor.execute("USE thai_rubber")
+    sql = "SELECT id, weather_station, weather_serial FROM plantation"
+    mycursor.execute(sql)
+    myresult_array = mycursor.fetchall()
+    
+    for data in myresult_array:
+        have_weather_station = data[1]
+        if (have_weather_station):
+            get_wether_wunderground(data[2])
+        else:
+            sql = "SELECT latitude, longitude FROM address WHERE id = %s"
+            value = (data[0],)
+            mycursor.execute(sql, value)
+            lat_long = mycursor.fetchall()[0]
+            
+            daily_data = get_weather(lat_long[0], lat_long[1])
+            temperature_2m_avg = daily_data["temperature_2m_avg"][0]
+            precipitation_sum = daily_data["precipitation_sum"][0]
+            precipitation_hours = daily_data["precipitation_hours"][0]
+            wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
+            wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
+            uv_index_max = daily_data["uv_index_max"][0]
+            shortwave_radiation_sum = daily_data["shortwave_radiation_sum"][0]
+
+            temperature_2m_avg = round(float(temperature_2m_avg), 2)
+            precipitation_sum = round(float(precipitation_sum), 2)
+            precipitation_hours = round(float(precipitation_hours), 2)
+            wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
+            wind_direction_10m_dominant = round(
+                float(wind_direction_10m_dominant), 2)
+            uv_index_max = round(float(uv_index_max), 2)
+            shortwave_radiation_sum = round(float(shortwave_radiation_sum), 2)
+            
+            print("temperature_2m_avg", temperature_2m_avg)
+            print("precipitation_sum", precipitation_sum)
+            print("precipitation_hours", precipitation_hours)
+            print("wind_speed_10m_max", wind_speed_10m_max)
+            print("wind_direction_10m_dominant", wind_direction_10m_dominant)
+            print("uv_index_max", uv_index_max)
+            print("shortwave_radiation_sum", shortwave_radiation_sum)
