@@ -14,6 +14,7 @@ from wunderground import get_wether_wunderground
 import os
 from dotenv import load_dotenv
 import threading
+import time
 
 load_dotenv()
 
@@ -29,6 +30,15 @@ disease = {}
 
 is_register = False
 
+# Store user data
+disease_summary = {}  # Use dictionary to group by user_id
+processing_count = {}  # Track number of images being processed
+summary_timer = {}  # Store threading.Timer for each user
+
+disease_flex_message = {}
+
+disease_temp = {}
+disease_user_data = {}
 # Line bot setup
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
@@ -36,15 +46,19 @@ line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # ฟังก์ชันตั้งเวลา Timeout แบบ Loop 5 วินาที
+
+
 def set_timeout_loop():
     def timeout_action():
-            # print("loop")
-            set_timeout_loop()  # เรียกตัวเองซ้ำเพื่อ Loop
+        # print("loop")
+        set_timeout_loop()  # เรียกตัวเองซ้ำเพื่อ Loop
     threading.Timer(5.0, timeout_action).start()
+
 
 set_timeout_loop()
 mydb, mycursor = connect_database()
 hour_add_weather(mydb, mycursor)
+
 
 @app.route("/webhook", methods=['POST'])
 def webhook():
@@ -65,20 +79,65 @@ def webhook():
 def handle_image_message(event):
     global disease
     # Get the image content
+    user_id = event.source.user_id
+
     message_content = line_bot_api.get_message_content(event.message.id)
     image_path = f"received_{event.message.id}.jpg"
 
     mydb, mycursor = connect_database()
     is_dicease, disease_json, predicted_class, class_data, confidence, data_json = upload_image(
-        mydb, mycursor, event.source.user_id, message_content)
+        mydb, mycursor, user_id, message_content)
     disease = json.loads(disease_json)
 
-    user_flex_state[event.source.user_id] = True
-    user_last_action[event.source.user_id] = "image_uploaded"
+    # =========================================================
 
-    # response_flex_message = ''
-    if (is_dicease):
-        response_flex_message = f"ผลการวิเคราะห์ : {class_data}\nความแม่นยำ : {confidence:.2f}"
+    disease_user_data[user_id] = []
+    # =========================================================
+
+    user_flex_state[user_id] = True
+    user_last_action[user_id] = "image_uploaded"
+
+    # =========================================================
+    # Update disease summary
+    if user_id not in disease_summary:
+        disease_temp[user_id] = []
+        disease_summary[user_id] = []
+        processing_count[user_id] = 0
+
+    disease_summary[user_id].append(
+        {'class': predicted_class, 'name': class_data, 'confidence': confidence})
+    processing_count[user_id] += 1
+    # ==
+    disease_temp[user_id].append(disease)
+    # ==
+    # Define function to send summary
+
+    def send_summary():
+        summary = {}
+        disease_user_data[user_id].append(disease_temp[user_id])
+        for entry in disease_summary[user_id]:
+            key = f"{entry['name']}"
+            if key not in summary:
+                summary[key] = {'count': 0, 'confidence': []}
+            summary[key]['count'] += 1
+            summary[key]['confidence'].append(entry['confidence'])
+
+        summary_text = "สรุปผลการวิเคราะห์:\n\n"
+        for index, (name, details) in enumerate(summary.items()):
+            avg_confidence = sum(details['confidence']) / details['count']
+            summary_text += f"- {name} มี {details['count']} รูป\n(ความแม่นยำเฉลี่ย: {avg_confidence:.2f})"
+            
+            if index < len(summary) - 1:
+                summary_text += "\n\n"
+
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text=summary_text))
+        # Clear summary after sending response
+        disease_summary[user_id] = []
+        disease_temp[user_id] = []
+        processing_count[user_id] = 0
+        summary_timer[user_id] = None
+
         items_array = [
             {"header": 'ลักษณะอาการของโรค', "action": 'ลักษณะอาการของโรค',
                 "img_url": "https://res.cloudinary.com/djfkjbnnr/image/upload/v1734785695/symptom_hwlv8d.png"},
@@ -93,19 +152,16 @@ def handle_image_message(event):
             {"header": 'วิธีรักษา', "action": 'วิธีรักษา',
                 "img_url": "https://res.cloudinary.com/djfkjbnnr/image/upload/v1734785755/treat_jrz1tf.png"},
         ]
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text=response_flex_message))
-        flex_message_function(event.source.user_id,
+        flex_message_function(user_id,
                               items_array, predicted_class)
 
-    else:
-        description = data_json[str(predicted_class)]["description"]
-        response_message = f"ผลการวิเคราะห์ : {class_data}\nความแม่นยำ : {confidence:.2f}\n\n{description}"
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text=response_flex_message))
+    # Cancel previous timer if exists
+    if user_id in summary_timer and summary_timer[user_id] is not None:
+        summary_timer[user_id].cancel()
 
-    # line_bot_api.reply_message(event.reply_token, TextSendMessage(text=response_flex_message))
-
+    # Start a new timer
+    summary_timer[user_id] = threading.Timer(1.5, send_summary)
+    summary_timer[user_id].start()
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
@@ -136,9 +192,9 @@ def handle_text_message(event):
                 'id': user_id,
                 'tel': tel
             }
-            
+
             change_user_tel(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(
@@ -167,9 +223,9 @@ def handle_text_message(event):
                 'id': user_id,
                 'area': area
             }
-            
+
             change_user_area(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(event.reply_token, TextSendMessage(
@@ -180,9 +236,9 @@ def handle_text_message(event):
                 'id': user_id,
                 'land_type': land_type
             }
-            
+
             change_user_land_type(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(event.reply_token, TextSendMessage(
@@ -193,9 +249,9 @@ def handle_text_message(event):
                 'id': user_id,
                 'soil_type': soil_type
             }
-            
+
             change_user_soil_type(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(
@@ -206,9 +262,9 @@ def handle_text_message(event):
                 'id': user_id,
                 'rubber_type': rubber_type
             }
-            
+
             change_user_rubber_type(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(
@@ -226,7 +282,7 @@ def handle_text_message(event):
                     'weather_station': weather_station
                 }
                 change_user_weather_station(mydb, mycursor, data)
-                
+
                 del user_register_state[user_id]
 
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(
@@ -238,9 +294,9 @@ def handle_text_message(event):
                 'weather_station': True,
                 'weather_serial': weather_serial
             }
-            
+
             change_user_weather_serial(mydb, mycursor, data)
-            
+
             del user_register_state[user_id]
 
             line_bot_api.reply_message(event.reply_token, TextSendMessage(
@@ -415,53 +471,103 @@ def handle_text_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text="ส่งรูปภาพที่ต้องการทำนายผล"))
 
+    # if text in ["ลักษณะอาการของโรค", "ระยะของโรค", "สาเหตุการเกิดโรค", "สภาพที่เหมาะสมต่อการระบาด", "การป้องกัน", "วิธีรักษา"]:
+    #     print("kutttttttttttttttt", text)
+    #     if user_id in user_flex_state and user_flex_state[user_id]:
+    #         # ตรวจสอบการกระทำล่าสุดว่าผู้ใช้เคยอัปโหลดรูปภาพหรือไม่
+    #         if user_id in user_last_action and user_last_action[user_id] == "image_uploaded":
+    #             header = {
+    #                 'ลักษณะอาการของโรค': 'symptom',
+    #                 'ระยะของโรค': 'phase',
+    #                 'สาเหตุการเกิดโรค': 'cause',
+    #                 'สภาพที่เหมาะสมต่อการระบาด': 'scourge',
+    #                 'การป้องกัน': 'protect',
+    #                 'วิธีรักษา': 'treat'
+    #             }
+
+    #             key = header.get(text)  # ตรวจสอบ key ที่แมปกับ text
+    #             key = key.strip() if key else None  # ลบช่องว่าง (ถ้ามี)
+
+    #             format_text = (f"{text}\n\n")
+
+    #             # เก็บรายการชื่อโรคที่เคยแสดงแล้ว เพื่อลบข้อมูลซ้ำ
+    #             displayed_diseases = set()
+
+    #             # กรองข้อมูลที่ไม่ซ้ำลงในลิสต์ใหม่
+    #             filtered_data = []
+    #             for disease_test in disease_flex_message[user_id]:
+    #                 disease_name = disease_test['name']
+    #                 if disease_name not in displayed_diseases:  # ถ้าไม่ซ้ำให้เพิ่ม
+    #                     filtered_data.append(disease_test)
+    #                     displayed_diseases.add(disease_name)
+
+    #             # วนลูปแสดงผลจากข้อมูลที่ผ่านการกรองแล้ว
+    #             for index, disease_test in enumerate(filtered_data):
+    #                 response_header = disease_test[key]['header']
+    #                 response_text = disease_test[key]['text']
+    #                 disease_name = disease_test['name']
+
+    #                 # เพิ่มข้อมูลลงในข้อความตอบกลับ
+    #                 format_text += f"{disease_name}\n{response_text}"
+
+    #                 # เพิ่ม "\n\n" ถ้าไม่ใช่รายการสุดท้าย
+    #                 if index < len(filtered_data) - 1:
+    #                     format_text += "\n\n"
+
+    #             # ส่งข้อความสรุปข้อมูลกลับให้ผู้ใช้
+    #             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=format_text))
+
+    #         else:
+    #             line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #                 text="กรุณาส่งรูปภาพก่อนเพื่อดูข้อมูลเพิ่มเติม"))
+    #     else:
+    #         user_flex_state[user_id] = False
+    #         user_last_action[user_id] = None
+    #         disease = {}
+    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #             text="กรุณาส่งรูปภาพก่อนเพื่อดูข้อมูลเพิ่มเติม"))
+    # else:
+    #     user_flex_state[user_id] = False
+    #     user_last_action[user_id] = None
+    #     disease = {}
+
+    # ตรวจสอบคำสั่งเกี่ยวกับ Flex Message
     if text in ["ลักษณะอาการของโรค", "ระยะของโรค", "สาเหตุการเกิดโรค", "สภาพที่เหมาะสมต่อการระบาด", "การป้องกัน", "วิธีรักษา"]:
-        print("kutttttttttttttttt", text)
         if user_id in user_flex_state and user_flex_state[user_id]:
-            # ตรวจสอบการกระทำล่าสุดว่าผู้ใช้เคยอัปโหลดรูปภาพหรือไม่
-            if user_id in user_last_action and user_last_action[user_id] == "image_uploaded":
+            key_map = {
+                "ลักษณะอาการของโรค": "symptom",
+                "ระยะของโรค": "phase",
+                "สาเหตุการเกิดโรค": "cause",
+                "สภาพที่เหมาะสมต่อการระบาด": "scourge",
+                "การป้องกัน": "protect",
+                "วิธีรักษา": "treat"
+            }
+            key = key_map[text]
 
-                header = {
-                    'ลักษณะอาการของโรค': 'symptom',
-                    'ระยะของโรค': 'phase',
-                    'สาเหตุการเกิดโรค': 'cause',
-                    'สภาพที่เหมาะสมต่อการระบาด': 'scourge',
-                    'การป้องกัน': 'protect',
-                    'วิธีรักษา': 'treat'
-                }
+            # แสดงข้อมูลทุกโรคใน session ปัจจุบัน
+            format_text = f"{text}\n\n"
+            diseases = disease_user_data[user_id][0]
 
-                key = header.get(text)  # ตรวจสอบ key ที่แมปกับ text
-                key = key.strip() if key else None  # ลบช่องว่าง (ถ้ามี)
+            for index, disease_data in enumerate(diseases):
+                disease_name = disease_data['name']
+                response_header = disease_data[key]['header']
+                response_text = disease_data[key]['text']
 
-                if key and key in disease:
-                    response_header = disease[key]['header']
-                    response_text = disease[key]['text']
+                format_text += f"{disease_name}\n"
+                format_text += f"{response_header}\n{response_text}"
 
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(
-                            text=f"{response_header}\n\n{response_text}")
-                    )
-                else:
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text="ไม่พบข้อมูลที่คุณต้องการ")
-                    )
+                # เพิ่มบรรทัดใหม่ระหว่างโรค (ยกเว้นรายการสุดท้าย)
+                if index < len(diseases) - 1:
+                    format_text += "\n\n"
 
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                    text="กรุณาส่งรูปภาพก่อนเพื่อดูข้อมูลเพิ่มเติม"))
+            # ส่งข้อความ Flex Message
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text=format_text))
         else:
-            user_flex_state[user_id] = False
-            user_last_action[user_id] = None
-            disease = {}
+            # หากยังไม่มีการอัปโหลดภาพ
             line_bot_api.reply_message(event.reply_token, TextSendMessage(
                 text="กรุณาส่งรูปภาพก่อนเพื่อดูข้อมูลเพิ่มเติม"))
-    else:
-        user_flex_state[user_id] = False
-        user_last_action[user_id] = None
-        disease = {}
-        
+
     if text == "ดูข้อมูลที่ลงทะเบียน":
         data = get_user_data(mydb, mycursor, user_id)
         text_format = (
@@ -474,7 +580,7 @@ def handle_text_message(event):
             f"เครื่องวัดสภาพอากาศ: {data['weather_serial']}"
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                text=text_format))
+            text=text_format))
 
 
 if __name__ == "__main__":
