@@ -46,20 +46,18 @@ LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-# ฟังก์ชันตั้งเวลา Timeout แบบ Loop 5 วินาที
+# ฟังก์ชันตั้งเวลา Timeout แบบ Loop 1 ชั่วโมง
 
+mydb, mycursor = connect_database()
 
 def set_timeout_loop():
     def timeout_action():
-        # print("loop")
+        hour_add_weather(mydb, mycursor)
+        print("Update hour weather")
         set_timeout_loop()  # เรียกตัวเองซ้ำเพื่อ Loop
-    threading.Timer(5.0, timeout_action).start()
-
+    threading.Timer(60*60, timeout_action).start()
 
 set_timeout_loop()
-mydb, mycursor = connect_database()
-hour_add_weather(mydb, mycursor)
-
 
 @app.route("/webhook", methods=['POST'])
 def webhook():
@@ -443,7 +441,6 @@ def handle_text_message(event):
             daily_data = get_weather(latitude, longitude)
             temperature_2m_avg = daily_data["temperature_2m_avg"][0]
             precipitation_sum = daily_data["precipitation_sum"][0]
-            precipitation_hours = daily_data["precipitation_hours"][0]
             wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
             wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
             shortwave_radiation_sum = daily_data["shortwave_radiation_sum"][0]
@@ -452,7 +449,6 @@ def handle_text_message(event):
 
             temperature_2m_avg = round(float(temperature_2m_avg), 2)
             precipitation_sum = round(float(precipitation_sum), 2)
-            precipitation_hours = round(float(precipitation_hours), 2)
             wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
             wind_direction_10m_dominant = round(
                 float(wind_direction_10m_dominant), 2)
@@ -464,7 +460,6 @@ def handle_text_message(event):
                 f"สภาพอากาศวันนี้\n"
                 f"อุณหภูมิเฉลี่ย: {temperature_2m_avg}°C\n"
                 f"ปริมาณน้ำฝน: {precipitation_sum} mm\n"
-                f"ชั่วโมงที่มีฝน: {precipitation_hours} ชั่วโมง\n"
                 f"ความเร็วลมสูงสุด: {wind_speed_10m_max} m/s\n"
                 f"ทิศทางลม: {wind_direction_10m_dominant}°\n"
                 f"รังสีแสงรวม: {shortwave_radiation_sum} W/m²\n"

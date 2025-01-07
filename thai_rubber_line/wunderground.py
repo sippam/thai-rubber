@@ -8,6 +8,6 @@ def get_wether_wunderground(apiKey):
     # Checking if the request was successful
     if response.status_code == 200:
         # Print response content (JSON or text)
-        print(response.json()['observations'][-1])  # If response is JSON
+        return response.json()['observations'][-1]
     else:
         print(f"Error: {response.status_code}")

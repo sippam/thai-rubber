@@ -79,9 +79,9 @@ def upload_image(mydb, mycursor, user_id, message_content):
 
     temperature_2m_avg = None
     precipitation_sum = None
-    precipitation_hours = None
     wind_speed_10m_max = None
     wind_direction_10m_dominant = None
+    wind_gusts_10m_max = None
     shortwave_radiation_sum = None
     relative_humidity_2m = None
     soil_moisture_9_to_27cm = None
@@ -93,31 +93,35 @@ def upload_image(mydb, mycursor, user_id, message_content):
     else:
         latitude, longitude = get_lat_long_user(mydb, mycursor, user_id)
         daily_data = get_weather(latitude, longitude)
+        temperature_2m_max = daily_data["temperature_2m_max"][0]
+        temperature_2m_min = daily_data["temperature_2m_min"][0]
         temperature_2m_avg = daily_data["temperature_2m_avg"][0]
         precipitation_sum = daily_data["precipitation_sum"][0]
-        precipitation_hours = daily_data["precipitation_hours"][0]
         wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
         wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
+        wind_gusts_10m_max = daily_data["wind_gusts_10m_max"][0]
         shortwave_radiation_sum = daily_data["shortwave_radiation_sum"][0]
         relative_humidity_2m = daily_data["relative_humidity_2m"][0]
         soil_moisture_9_to_27cm = daily_data["soil_moisture_9_to_27cm"][0]
 
+        temperature_2m_max = round(float(temperature_2m_max), 2)
+        temperature_2m_min = round(float(temperature_2m_min), 2)
         temperature_2m_avg = round(float(temperature_2m_avg), 2)
         precipitation_sum = round(float(precipitation_sum), 2)
-        precipitation_hours = round(float(precipitation_hours), 2)
         wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
         wind_direction_10m_dominant = round(
             float(wind_direction_10m_dominant), 2)
+        wind_gusts_10m_max = round(float(daily_wind_gusts_10m_max), 2)
         shortwave_radiation_sum = round(float(shortwave_radiation_sum), 2)
         relative_humidity_2m = round(float(relative_humidity_2m), 2)
         soil_moisture_9_to_27cm = round(float(soil_moisture_9_to_27cm), 2)
     # บันทึก Path ลงฐานข้อมูล
     mycursor.execute("USE thai_rubber")
     sql = """
-    INSERT INTO uploads (id, path, disease, disease_level, temperature_avg, precipitation_sum, precipitation_hours, wind_speed, wind_direction, shortwave_radiation_sum, relative_humidity, soil_moisture, forecast_7days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+    INSERT INTO uploads (id, path, disease, disease_level, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, forecast_7days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
     """
-    value = (user_id, file_path, class_data, disease_level, temperature_2m_avg, precipitation_sum, precipitation_hours, wind_speed_10m_max,
-             wind_direction_10m_dominant, shortwave_radiation_sum, relative_humidity_2m, soil_moisture_9_to_27cm, 0, 0)
+    value = (user_id, file_path, class_data, disease_level, temperature_2m_avg, precipitation_sum, wind_speed_10m_max,
+             wind_direction_10m_dominant, wind_gusts_10m_max, shortwave_radiation_sum, relative_humidity_2m, soil_moisture_9_to_27cm, 0, 0)
     mycursor.execute(sql, value)
     mydb.commit()
     last_inserted_id = mycursor.lastrowid

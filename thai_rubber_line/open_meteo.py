@@ -19,8 +19,8 @@ def get_weather(lat, long):
     params = {
         "latitude": lat,
         "longitude": long,
-        "hourly": ["relative_humidity_2m", "soil_temperature_18cm", "soil_moisture_9_to_27cm"],
-        "daily": ["temperature_2m_max", "temperature_2m_min", "precipitation_sum", "precipitation_hours", "wind_speed_10m_max", "wind_direction_10m_dominant", "shortwave_radiation_sum"],
+        "hourly": ["relative_humidity_2m", "soil_moisture_9_to_27cm"],
+        "daily": ["temperature_2m_max", "temperature_2m_min", "precipitation_sum", "wind_speed_10m_max", "wind_direction_10m_dominant", "wind_gusts_10m_max", "shortwave_radiation_sum"],
         "timezone": "Asia/Bangkok",
         "forecast_days": 1
     }
@@ -37,17 +37,16 @@ def get_weather(lat, long):
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     hourly_relative_humidity_2m = hourly.Variables(0).ValuesAsNumpy()
-    hourly_soil_temperature_18cm = hourly.Variables(1).ValuesAsNumpy()
-    hourly_soil_moisture_9_to_27cm = hourly.Variables(2).ValuesAsNumpy()
+    hourly_soil_moisture_9_to_27cm = hourly.Variables(1).ValuesAsNumpy()
 
     # Process daily data. The order of variables needs to be the same as requested.
     daily = response.Daily()
     daily_temperature_2m_max = daily.Variables(0).ValuesAsNumpy()
     daily_temperature_2m_min = daily.Variables(1).ValuesAsNumpy()
     daily_precipitation_sum = daily.Variables(2).ValuesAsNumpy()
-    daily_precipitation_hours = daily.Variables(3).ValuesAsNumpy()
-    daily_wind_speed_10m_max = daily.Variables(4).ValuesAsNumpy()
-    daily_wind_direction_10m_dominant = daily.Variables(5).ValuesAsNumpy()
+    daily_wind_speed_10m_max = daily.Variables(3).ValuesAsNumpy()
+    daily_wind_direction_10m_dominant = daily.Variables(4).ValuesAsNumpy()
+    daily_wind_gusts_10m_max = daily.Variables(5).ValuesAsNumpy()
     daily_shortwave_radiation_sum = daily.Variables(6).ValuesAsNumpy()
 
     daily_data = {"date": pd.date_range(
@@ -58,15 +57,16 @@ def get_weather(lat, long):
     )}
 
     avg_temp = (daily_temperature_2m_max + daily_temperature_2m_min) / 2
+    daily_data["temperature_2m_max"] = daily_temperature_2m_max
+    daily_data["temperature_2m_min"] = daily_temperature_2m_min
     daily_data["temperature_2m_avg"] = avg_temp
     daily_data["precipitation_sum"] = daily_precipitation_sum
-    daily_data["precipitation_hours"] = daily_precipitation_hours
     daily_data["wind_speed_10m_max"] = daily_wind_speed_10m_max
     daily_data["wind_direction_10m_dominant"] = daily_wind_direction_10m_dominant
+    daily_data["wind_gusts_10m_max"] = daily_wind_gusts_10m_max
     daily_data["shortwave_radiation_sum"] = daily_shortwave_radiation_sum
     
     # Hours
     daily_data["relative_humidity_2m"] = hourly_relative_humidity_2m
-    daily_data["soil_temperature_18cm"] = hourly_soil_temperature_18cm
     daily_data["soil_moisture_9_to_27cm"] = hourly_soil_moisture_9_to_27cm
     return daily_data
