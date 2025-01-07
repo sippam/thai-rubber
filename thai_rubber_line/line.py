@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 import threading
 import time
+from function import check_have_weather_station
 
 load_dotenv()
 
@@ -410,14 +411,15 @@ def handle_text_message(event):
                 event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
 
     if text == "สภาพอากาศ":
-        mycursor.execute("USE thai_rubber")
-        mycursor.execute(
-            "SELECT weather_station, weather_serial FROM plantation WHERE id = %s", (user_id,))
-        result = mycursor.fetchone()
-        have_weather_station = result[0]
+        # mycursor.execute("USE thai_rubber")
+        # mycursor.execute(
+        #     "SELECT weather_station, weather_serial FROM plantation WHERE id = %s", (user_id,))
+        # result = mycursor.fetchone()
+        # have_weather_station = result[0]
+        have_weather_station = check_have_weather_station(mycursor, user_id)
 
-        if (have_weather_station):
-            get_wether_wunderground(result[1])
+        if (have_weather_station[0]):
+            get_wether_wunderground(have_weather_station[1])
 
             format_text = (
                 f"สภาพอากาศวันนี้\n"
@@ -426,8 +428,10 @@ def handle_text_message(event):
                 f"ชั่วโมงที่มีฝน: {1} ชั่วโมง\n"
                 f"ความเร็วลมสูงสุด: {1} m/s\n"
                 f"ทิศทางลม: {1}°\n"
-                f"ดัชนี UV สูงสุด: {1}\n"
-                f"รังสีแสงรวม: {1} W/m²"
+                f"รังสีแสงรวม: {1} W/m²\n"
+                f"ความชื้นสัมพัทธ์: {1}%\n"
+                f"ความชื้นในดิน: {1}%\n"
+                f"ปุ๋ย: {1}"
             )
 
             line_bot_api.reply_message(
@@ -442,8 +446,9 @@ def handle_text_message(event):
             precipitation_hours = daily_data["precipitation_hours"][0]
             wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
             wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
-            uv_index_max = daily_data["uv_index_max"][0]
             shortwave_radiation_sum = daily_data["shortwave_radiation_sum"][0]
+            relative_humidity_2m = daily_data["relative_humidity_2m"][0]
+            soil_moisture_9_to_27cm = daily_data["soil_moisture_9_to_27cm"][0]
 
             temperature_2m_avg = round(float(temperature_2m_avg), 2)
             precipitation_sum = round(float(precipitation_sum), 2)
@@ -451,8 +456,9 @@ def handle_text_message(event):
             wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
             wind_direction_10m_dominant = round(
                 float(wind_direction_10m_dominant), 2)
-            uv_index_max = round(float(uv_index_max), 2)
             shortwave_radiation_sum = round(float(shortwave_radiation_sum), 2)
+            relative_humidity_2m = round(float(relative_humidity_2m), 2)
+            soil_moisture_9_to_27cm = round(float(soil_moisture_9_to_27cm), 2)
 
             format_text = (
                 f"สภาพอากาศวันนี้\n"
@@ -461,8 +467,9 @@ def handle_text_message(event):
                 f"ชั่วโมงที่มีฝน: {precipitation_hours} ชั่วโมง\n"
                 f"ความเร็วลมสูงสุด: {wind_speed_10m_max} m/s\n"
                 f"ทิศทางลม: {wind_direction_10m_dominant}°\n"
-                f"ดัชนี UV สูงสุด: {uv_index_max}\n"
-                f"รังสีแสงรวม: {shortwave_radiation_sum} W/m²"
+                f"รังสีแสงรวม: {shortwave_radiation_sum} W/m²\n"
+                f"ความชื้นสัมพัทธ์: {relative_humidity_2m}%\n"
+                f"ความชื้นในดิน: {soil_moisture_9_to_27cm}%"
             )
             line_bot_api.reply_message(
                 event.reply_token, TextSendMessage(text=format_text))

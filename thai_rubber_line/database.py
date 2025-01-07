@@ -309,22 +309,47 @@ def hour_add_weather(mydb, mycursor):
             precipitation_hours = daily_data["precipitation_hours"][0]
             wind_speed_10m_max = daily_data["wind_speed_10m_max"][0]
             wind_direction_10m_dominant = daily_data["wind_direction_10m_dominant"][0]
-            uv_index_max = daily_data["uv_index_max"][0]
             shortwave_radiation_sum = daily_data["shortwave_radiation_sum"][0]
-
+            relative_humidity_2m = daily_data["relative_humidity_2m"][0]
+            soil_temperature_18cm = daily_data["soil_temperature_18cm"][0]
+            soil_moisture_9_to_27cm = daily_data["soil_moisture_9_to_27cm"][0]
+            
             temperature_2m_avg = round(float(temperature_2m_avg), 2)
             precipitation_sum = round(float(precipitation_sum), 2)
             precipitation_hours = round(float(precipitation_hours), 2)
             wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
             wind_direction_10m_dominant = round(
                 float(wind_direction_10m_dominant), 2)
-            uv_index_max = round(float(uv_index_max), 2)
             shortwave_radiation_sum = round(float(shortwave_radiation_sum), 2)
+            relative_humidity_2m = round(float(relative_humidity_2m), 2)
+            soil_temperature_18cm = round(float(soil_temperature_18cm), 2)
+            soil_moisture_9_to_27cm = round(float(soil_moisture_9_to_27cm), 2)
             
             print("temperature_2m_avg", temperature_2m_avg)
             print("precipitation_sum", precipitation_sum)
             print("precipitation_hours", precipitation_hours)
             print("wind_speed_10m_max", wind_speed_10m_max)
             print("wind_direction_10m_dominant", wind_direction_10m_dominant)
-            print("uv_index_max", uv_index_max)
             print("shortwave_radiation_sum", shortwave_radiation_sum)
+            print("relative_humidity_2m", relative_humidity_2m)
+            print("soil_temperature_18cm", soil_temperature_18cm)
+            print("soil_moisture_9_to_27cm", soil_moisture_9_to_27cm)
+            
+def send_noti_first_time(mydb, mycursor, data):
+    id = data["id"]
+    disease = data["disease"]["name"]
+    
+    mycursor.execute("USE thai_rubber")
+    sql = "SELECT COUNT(*) FROM uploads WHERE id = %s AND disease LIKE %s"
+    value = (id, disease)
+    mycursor.execute(sql, value)
+    myresult = mycursor.fetchall()[0][0]
+
+    if myresult == 1:
+        transaction_id = data["transaction_id"]
+        disease_level = data["disease_level"]
+        risk = data["risk"]
+        sql = "INSERT INTO notifications (transaction_id, id, disease, disease_level, risk, create_at) VALUES (%s, %s, %s, %s, %s, NOW())"
+        value = (transaction_id, id, disease, disease_level, risk)
+        mycursor.execute(sql, value)
+        print("Inserted new notification.")
