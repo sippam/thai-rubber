@@ -50,6 +50,7 @@ handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 mydb, mycursor = connect_database()
 
+
 def set_timeout_loop():
     def timeout_action():
         hour_add_weather(mydb, mycursor)
@@ -57,7 +58,9 @@ def set_timeout_loop():
         set_timeout_loop()  # เรียกตัวเองซ้ำเพื่อ Loop
     threading.Timer(60*60, timeout_action).start()
 
+
 set_timeout_loop()
+
 
 @app.route("/webhook", methods=['POST'])
 def webhook():
@@ -84,7 +87,7 @@ def handle_image_message(event):
     image_path = f"received_{event.message.id}.jpg"
 
     mydb, mycursor = connect_database()
-    is_dicease, disease_json, predicted_class, class_data, confidence, data_json = upload_image(
+    is_dicease, disease_json, predicted_class, class_data, confidence, data_json, text_predict_7days, text_predict_14days, text_disease = upload_image(
         mydb, mycursor, user_id, message_content)
     disease = json.loads(disease_json)
 
@@ -124,8 +127,8 @@ def handle_image_message(event):
         summary_text = "สรุปผลการวิเคราะห์:\n\n"
         for index, (name, details) in enumerate(summary.items()):
             avg_confidence = sum(details['confidence']) / details['count']
-            summary_text += f"- {name} มี {details['count']} รูป\n(ความแม่นยำเฉลี่ย: {avg_confidence:.2f})"
-            
+            summary_text += f"- {name} มี {details['count']} รูป\n- {text_predict_7days}\n- {text_predict_14days}\n- {text_disease}"
+
             if index < len(summary) - 1:
                 summary_text += "\n\n"
 
@@ -161,6 +164,7 @@ def handle_image_message(event):
     # Start a new timer
     summary_timer[user_id] = threading.Timer(1.5, send_summary)
     summary_timer[user_id].start()
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):

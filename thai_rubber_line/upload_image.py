@@ -13,9 +13,15 @@ from wunderground import get_wether_wunderground
 
 from line_flex_message import flex_message_function
 from pydantic import BaseModel
-from model.predict_powder_risk import predict_powder_risk
-from model.predict_powder_7days import predict_powder_7days
-from model.predict_powder_14days import predict_powder_14days
+from model.powder.predict_powder_risk import predict_powder_risk
+from model.powder.predict_powder_7days import predict_powder_7days
+from model.powder.predict_powder_14days import predict_powder_14days
+
+from model.newfall.predict_newfall_risk import predict_newfall_risk
+from model.newfall.predict_newfall_7days import predict_newfall_7days
+from model.newfall.predict_newfall_14days import predict_newfall_14days
+
+from predict_enum import PREDICT_POWDER_DISEASE_TEXT, PREDICT_POWDER_7_14DAYS_TEXT, PREDICT_NEWFALL_DISEASE_TEXT, PREDICT_NEWFALL_7_14DAYS_TEXT
 # ข้อมูลอินพุต
 
 
@@ -200,14 +206,26 @@ def upload_image(mydb, mycursor, user_id, message_content):
         "drift_detected": False
     }
     print("data_predict", data_predict)
+    text_predict_7days = ""
+    text_predict_14days = ""
+    text_predict_risk = ""
     if (str(predicted_class) == "7" or str(predicted_class) == "8" or str(predicted_class) == "9"):
         data_predict_7days = predict_powder_7days(InputDataForecast(**data_predict))
         data_predict_14days = predict_powder_14days(InputDataForecast(**data_predict))
         data_predict_risk = predict_powder_risk(InputDataRisk(**data_risk))
-        print("data_predict_7days", data_predict_7days)
-        print("data_predict_14days", data_predict_14days)
-        print("data_predict_risk", data_predict_risk)
-
+        
+        text_predict_7days = f"ระดับความรุนแรงในอีก 7 วันข้างหน้า: {PREDICT_POWDER_7_14DAYS_TEXT[data_predict_7days['predicted_label']]}"
+        text_predict_14days = f"ระดับความรุนแรงในอีก 14 วันข้างหน้า: {PREDICT_POWDER_7_14DAYS_TEXT[data_predict_14days['predicted_label']]}"
+        text_disease = f"ความเสี่ยงในการระบาด: {PREDICT_POWDER_DISEASE_TEXT[data_predict_risk['predicted_label']]}"
+    elif (str(predicted_class) == "1" or str(predicted_class) == "2" or str(predicted_class) == "3"):
+        data_predict_7days = predict_newfall_7days(InputDataForecast(**data_predict))
+        data_predict_14days = predict_newfall_14days(InputDataForecast(**data_predict))
+        data_predict_risk = predict_newfall_risk(InputDataRisk(**data_risk))
+        
+        text_predict_7days = f"ระดับความรุนแรงในอีก 7 วันข้างหน้า: {PREDICT_NEWFALL_7_14DAYS_TEXT[data_predict_7days['predicted_label']]}"
+        text_predict_14days = f"ระดับความรุนแรงในอีก 14 วันข้างหน้า: {PREDICT_NEWFALL_7_14DAYS_TEXT[data_predict_14days['predicted_label']]}"
+        text_disease = f"ความเสี่ยงในการระบาด: {PREDICT_NEWFALL_DISEASE_TEXT[data_predict_risk['predicted_label']]}"
+        
     sql = """
     INSERT INTO weather_disease (transaction_id, disease, temperature_max, temperature_min, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, sevirity, forecast_7days, forecast_14days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
     """
@@ -227,4 +245,4 @@ def upload_image(mydb, mycursor, user_id, message_content):
     mydb.commit()
     
     print(f"Image saved at: {file_path}")
-    return is_dicease, disease_json, predicted_class, class_data, confidence, data_json
+    return is_dicease, disease_json, predicted_class, class_data, confidence, data_json, text_predict_7days, text_predict_14days, text_disease

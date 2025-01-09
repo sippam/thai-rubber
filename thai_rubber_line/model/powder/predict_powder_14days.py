@@ -5,7 +5,7 @@ from river.drift import ADWIN
 from river import metrics
 
 # --- โหลดโมเดลและ Drift Detector ---
-with open('model/powder_adaptive_14_model_with_drift.pkl', 'rb') as f:
+with open('model/powder/powder_adaptive_14_model_with_drift.pkl', 'rb') as f:
     saved_data = dill.load(f)
 
 model = saved_data['model']
@@ -57,7 +57,7 @@ def predict_powder_14days(data: InputDataForecast):
 
     # บันทึกโมเดลเมื่อครบ 100 ครั้ง
     if learn_counter >= 100:
-        with open('model/powder_adaptive_14_model_with_drift.pkl', 'wb') as f:
+        with open('model/powder/powder_adaptive_14_model_with_drift.pkl', 'wb') as f:
             dill.dump({'model': model, 'drift_detector': drift_detector}, f)
         print("Model saved after 100 updates.")
         learn_counter = 0  # รีเซ็ตตัวนับ
