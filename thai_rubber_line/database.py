@@ -472,16 +472,18 @@ def hour_add_weather(mydb, mycursor):
 
 def send_noti_first_time(mydb, mycursor, data):
     id = data["id"]
+    transaction_id = data["transaction_id"]
     disease = data["disease"]["name"]
 
-    mycursor.execute("USE thai_rubber")
-    sql = "SELECT COUNT(*) FROM uploads WHERE id = %s AND disease LIKE %s"
+    # sql = "SELECT COUNT(*) FROM weather_disease WHERE transaction_id = %s AND disease LIKE %s"
+    sql = "SELECT COUNT(*) FROM uploads NATURAL JOIN weather_disease WHERE uploads.id = %s AND disease LIKE %s"
+    
+    # sql = "SELECT COUNT(*) FROM uploads WHERE id = %s"
     value = (id, disease)
     mycursor.execute(sql, value)
     myresult = mycursor.fetchall()[0][0]
-
+    print("myresult", myresult)
     if myresult == 1:
-        transaction_id = data["transaction_id"]
         disease_level = data["disease_level"]
         risk = data["risk"]
         sql = "INSERT INTO notifications (transaction_id, id, disease, disease_level, risk, create_at) VALUES (%s, %s, %s, %s, %s, NOW())"

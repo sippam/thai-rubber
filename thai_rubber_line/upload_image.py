@@ -12,6 +12,37 @@ from function import check_have_weather_station
 from wunderground import get_wether_wunderground
 
 from line_flex_message import flex_message_function
+from pydantic import BaseModel
+from model.predict_powder_risk import predict_powder_risk
+from model.predict_powder_7days import predict_powder_7days
+from model.predict_powder_14days import predict_powder_14days
+# ข้อมูลอินพุต
+
+
+class InputDataRisk(BaseModel):
+    temperature_max: float
+    temperature_min: float
+    temperature_mean: float
+    precipitation_sum: float
+    wind_speed: float
+    wind_gusts: float
+    wind_direction: float
+    shortwave_radiation_sum: float
+    humidity: float
+    soil_moisture: float
+
+class InputDataForecast(BaseModel):
+    temperature_max: float
+    temperature_min: float
+    temperature_mean: float
+    precipitation_sum: float
+    wind_speed: float
+    wind_gusts: float
+    wind_direction: float
+    shortwave_radiation_sum: float
+    humidity: float
+    soil_moisture: float
+    sevirity: int
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -77,19 +108,31 @@ def upload_image(mydb, mycursor, user_id, message_content):
     disease = data_json[str(predicted_class)]
     disease_json = json.dumps(disease, ensure_ascii=False, indent=4)
 
+    temperature_2m_max = None
+    temperature_2m_min = None
     temperature_2m_avg = None
     precipitation_sum = None
     wind_speed_10m_max = None
-    wind_direction_10m_dominant = None
     wind_gusts_10m_max = None
+    wind_direction_10m_dominant = None
     shortwave_radiation_sum = None
     relative_humidity_2m = None
     soil_moisture_9_to_27cm = None
     # Wether data
     have_weather_station = check_have_weather_station(mycursor, user_id)
     if (have_weather_station[0]):
-        get_wether_wunderground(have_weather_station[1])
-        # print("data", data)
+        data = get_wether_wunderground(have_weather_station[1])
+
+        temperature_2m_max = data["imperial"]["tempHigh"]
+        temperature_2m_min = data["imperial"]["tempLow"]
+        temperature_2m_avg = data["imperial"]["tempAvg"]
+        precipitation_sum = data["imperial"]["precipTotal"]
+        wind_speed_10m_max = data["imperial"]["windspeedHigh"]
+        wind_gusts_10m_max = data["imperial"]["windgustHigh"]
+        wind_direction_10m_dominant = data["winddirAvg"]
+        shortwave_radiation_sum = data["solarRadiationHigh"]
+        relative_humidity_2m = data["humidityAvg"]
+        soil_moisture_9_to_27cm = 0
     else:
         latitude, longitude = get_lat_long_user(mydb, mycursor, user_id)
         daily_data = get_weather(latitude, longitude)
@@ -118,23 +161,70 @@ def upload_image(mydb, mycursor, user_id, message_content):
     # บันทึก Path ลงฐานข้อมูล
     mycursor.execute("USE thai_rubber")
     sql = """
-    INSERT INTO uploads (id, path, disease, disease_level, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, forecast_7days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+    INSERT INTO uploads (id, path, create_at) VALUES (%s, %s, NOW())
     """
-    value = (user_id, file_path, class_data, disease_level, temperature_2m_avg, precipitation_sum, wind_speed_10m_max,
-             wind_direction_10m_dominant, wind_gusts_10m_max, shortwave_radiation_sum, relative_humidity_2m, soil_moisture_9_to_27cm, 0, 0)
+    value = (user_id, file_path)
     mycursor.execute(sql, value)
-    mydb.commit()
+    
     last_inserted_id = mycursor.lastrowid
 
+    data_risk = {
+        "temperature_max": temperature_2m_max,
+        "temperature_min": temperature_2m_min,
+        "temperature_mean": temperature_2m_avg,
+        "precipitation_sum": precipitation_sum,
+        "wind_speed": wind_speed_10m_max,
+        "wind_gusts": wind_gusts_10m_max,
+        "wind_direction": wind_direction_10m_dominant,
+        "shortwave_radiation_sum": shortwave_radiation_sum,
+        "humidity": relative_humidity_2m,
+        "soil_moisture": soil_moisture_9_to_27cm,
+    }
+
+    data_predict = data_risk
+    data_predict["sevirity"] = disease_level
+
+    data_predict_7days = {
+        "predicted_label": 0,
+        "current_accuracy": 0,
+        "drift_detected": False
+    }
+    data_predict_14days = {
+        "predicted_label": 0,
+        "current_accuracy": 0,
+        "drift_detected": False
+    }
+    data_predict_risk = {
+        "predicted_label": 0,
+        "current_accuracy": 0,
+        "drift_detected": False
+    }
+    print("data_predict", data_predict)
+    if (str(predicted_class) == "7" or str(predicted_class) == "8" or str(predicted_class) == "9"):
+        data_predict_7days = predict_powder_7days(InputDataForecast(**data_predict))
+        data_predict_14days = predict_powder_14days(InputDataForecast(**data_predict))
+        data_predict_risk = predict_powder_risk(InputDataRisk(**data_risk))
+        print("data_predict_7days", data_predict_7days)
+        print("data_predict_14days", data_predict_14days)
+        print("data_predict_risk", data_predict_risk)
+
+    sql = """
+    INSERT INTO weather_disease (transaction_id, disease, temperature_max, temperature_min, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, sevirity, forecast_7days, forecast_14days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+    """
+    value = (last_inserted_id, class_data, temperature_2m_max, temperature_2m_min, temperature_2m_avg, precipitation_sum, wind_speed_10m_max,
+             wind_direction_10m_dominant, wind_gusts_10m_max, shortwave_radiation_sum, relative_humidity_2m, soil_moisture_9_to_27cm, disease_level, data_predict_7days["predicted_label"], data_predict_14days["predicted_label"], data_predict_risk["predicted_label"])
+    mycursor.execute(sql, value)
+    mydb.commit()
+    # ส่งข้อความแจ้งเตือน
     data = {
         "transaction_id": last_inserted_id,
         "id": user_id,
         "disease": disease,
         "disease_level": disease_level,
-        "risk": 0,
+        "risk": data_predict_risk["predicted_label"],
     }
     send_noti_first_time(mydb, mycursor, data)
-
     mydb.commit()
+    
     print(f"Image saved at: {file_path}")
     return is_dicease, disease_json, predicted_class, class_data, confidence, data_json
