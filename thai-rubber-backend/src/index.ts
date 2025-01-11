@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import lineLoginRouter from "./routes/login"; // Ensure this is a TypeScript file or compiled JS
 import lineUserProfile from "./routes/line-profile";
 import user from "./routes/user";
+import adaptive from "./routes/adaptive";
 const cors = require("cors");
 
 const app: Application = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api", lineLoginRouter);
 app.use("/api", lineUserProfile);
 app.use("/api", user);
+app.use("/api", adaptive);
 
 // Start the server
 app.listen(port, () => {

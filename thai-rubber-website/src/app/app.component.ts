@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { LoginService } from '@services/login/login.service';
 import { UserService } from '@services/user/user.service';
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -22,7 +23,7 @@ export class AppComponent implements OnInit {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         // เช็ค path ปัจจุบัน
-        const hiddenRoutes = ['/', '/callback', '/register', '/login']; 
+        const hiddenRoutes = ['/', '/callback', '/register', '/login'];
         console.log(
           'hiddenRoutes.includes(event.url)',
           hiddenRoutes.includes(event.url)

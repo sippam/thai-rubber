@@ -1,16 +1,24 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
-import { MatOption, MatSelect } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
-import { SearchSelectComponent } from '@components/search-select/search-select.component';
-import { ProvinceService } from '@services/province/province.service';
+import { DatePipe } from '@angular/common';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import {
-  Provinces,
-  District,
-  Tambon,
-} from 'src/app/shared/models/provinces.model';
+  DateAdapter,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MatFormField,
+  MatFormFieldModule,
+  MatLabel,
+} from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
+import { AdaptiveService } from '@services/adaptive/adaptive.service';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { ThaiDateAdapter } from 'src/app/shared/pipes/thai-date-adapter';
+import { THAI_DATE_FORMATS } from 'src/app/shared/pipes/thai-date-formats';
+import { TableComponent } from './table/table.component';
 
 @Component({
   selector: 'app-adaptive-model',
@@ -18,98 +26,290 @@ import {
   imports: [
     MatIcon,
     RouterLink,
+    ReactiveFormsModule,
+    NgxChartsModule,
     MatFormField,
     MatLabel,
-    MatSelect,
-    MatOption,
-    ReactiveFormsModule,
-    SearchSelectComponent,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    TableComponent,
   ],
   templateUrl: './adaptive-model.component.html',
   styleUrl: './adaptive-model.component.scss',
+  providers: [
+    { provide: DateAdapter, useClass: ThaiDateAdapter },
+    { provide: MAT_DATE_LOCALE, useValue: 'th-TH' },
+    { provide: MAT_DATE_FORMATS, useValue: THAI_DATE_FORMATS },
+    DatePipe,
+  ],
 })
 export class AdaptiveModelComponent implements OnInit {
-  filterGroup: FormGroup;
+  #adaptiveService = inject(AdaptiveService);
+  view: [number, number] = [700, 400]; // Default chart size
 
-  filter_label = [
-    { form_name: 'province', label: 'จังหวัด' },
-    { form_name: 'district', label: 'อำเภอ' },
-    { form_name: 'tambon', label: 'ตำบล' },
+  dataset_powder: {
+    name: string;
+    series: { name: string; value: number }[];
+  }[] = [
+    {
+      name: 'accuracy_7_day',
+      series: [],
+    },
+    {
+      name: 'accuracy_14_day',
+      series: [],
+    },
+    {
+      name: 'accuracy_outbreak',
+      series: [],
+    },
   ];
-  #provincesService = inject(ProvinceService);
-  provinces: Provinces[] = [];
-  districts: District[] = [];
-  tambons: Tambon[] = [];
+  yScaleMinPowder = 0;
 
-  selectedProvince: Provinces | null = null;
-  selectedDistrict: District | null = null;
-  selectedTambon: Tambon | null = null;
+  dataset_newfall: {
+    name: string;
+    series: { name: string; value: number }[];
+  }[] = [
+    {
+      name: 'การเกิดโรคในอีก 7 วัน',
+      series: [],
+    },
+    {
+      name: 'การเกิดโรคในอีก 14 วัน',
+      series: [],
+    },
+    {
+      name: 'ความเสี่ยงในการระบาด',
+      series: [],
+    },
+  ];
+  yScaleMinNewfall = 0;
 
-  mockData = {
-    farmer: 'นายกอไก่ ขอไข่',
-    address: 'ม.6 ต.สังคม อ.สังคม จ.หนองคาย',
-    area: '20 ไร่',
-    area_characteristic: 'ลาดชัน',
-    soil: 'ร่วนเหนียว',
-    rubber_type: 'RRIM 600',
-  };
+  startDate: string | null = null; // Track start date
+  endDate: string | null = null; // Track end date
 
-  constructor(private fb: FormBuilder) {
-    this.filterGroup = this.fb.group({
-      province: [''],
-      district: [''],
-      tambon: [''],
-    });
+  startDate2: string | null = null; // Track start date
+  endDate2: string | null = null; // Track end date
+
+  onDateRangeChange(event: any, type: 'start' | 'end') {
+    if (type === 'start') {
+      this.startDate = new Date(event.value).toISOString().split('T')[0];
+    } else if (type === 'end') {
+      this.endDate = new Date(event.value).toISOString().split('T')[0];
+
+      // Trigger the API when end date is selected
+      if (this.startDate && this.endDate) {
+        this.#adaptiveService
+          .getAdaptivePlotPowder('powder', this.startDate, this.endDate)
+          .subscribe({
+            next: (response: any) => {
+              if (response.status == 200) {
+                const newDataset: {
+                  name: string;
+                  series: { name: string; value: number }[];
+                }[] = [
+                  { name: 'การเกิดโรคในอีก 7 วัน', series: [] },
+                  { name: 'การเกิดโรคในอีก 14 วัน', series: [] },
+                  { name: 'ความเสี่ยงในการระบาด', series: [] },
+                ];
+
+                response.data.forEach((item: any) => {
+                  newDataset[0].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_7_day,
+                  });
+                  newDataset[1].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_14_day,
+                  });
+                  newDataset[2].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_outbreak,
+                  });
+                });
+
+                this.dataset_powder = newDataset;
+
+                const minValue = Math.min(
+                  ...this.dataset_powder.flatMap((d) =>
+                    d.series.map((s) => s.value)
+                  )
+                );
+
+                this.yScaleMinPowder = minValue * 0.9;
+              }
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+      }
+    }
+  }
+
+  onDateRangeChange2(event: any, type: 'start' | 'end') {
+    if (type === 'start') {
+      this.startDate2 = new Date(event.value).toISOString().split('T')[0];
+    } else if (type === 'end') {
+      this.endDate2 = new Date(event.value).toISOString().split('T')[0];
+
+      // Trigger the API when end date is selected
+      if (this.startDate2 && this.endDate2) {
+        this.#adaptiveService
+          .getAdaptivePlotPowder('newfall', this.startDate2, this.endDate2)
+          .subscribe({
+            next: (response: any) => {
+              if (response.status == 200) {
+                const newDataset: {
+                  name: string;
+                  series: { name: string; value: number }[];
+                }[] = [
+                  { name: 'การเกิดโรคในอีก 7 วัน', series: [] },
+                  { name: 'การเกิดโรคในอีก 14 วัน', series: [] },
+                  { name: 'ความเสี่ยงในการระบาด', series: [] },
+                ];
+
+                response.data.forEach((item: any) => {
+                  newDataset[0].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_7_day,
+                  });
+                  newDataset[1].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_14_day,
+                  });
+                  newDataset[2].series.push({
+                    name: new Date(item.create_at).toLocaleDateString(),
+                    value: item.accuracy_outbreak,
+                  });
+                });
+
+                this.dataset_newfall = newDataset;
+
+                const minValue = Math.min(
+                  ...this.dataset_newfall.flatMap((d) =>
+                    d.series.map((s) => s.value)
+                  )
+                );
+
+                this.yScaleMinNewfall = minValue * 0.9;
+              }
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+      }
+    }
   }
 
   ngOnInit() {
-    // Fetch provinces and districts
-    this.#provincesService.getAllProvinces().subscribe((data) => {
-      this.provinces = data as Provinces[];
+    this.updateChartSize();
+
+    this.#adaptiveService.getAdaptivePlotPowder('powder').subscribe({
+      next: (response: any) => {
+        if (response.status == 200) {
+          const newDataset: {
+            name: string;
+            series: { name: string; value: number }[];
+          }[] = [
+            { name: 'การเกิดโรคในอีก 7 วัน', series: [] },
+            { name: 'การเกิดโรคในอีก 14 วัน', series: [] },
+            { name: 'ความเสี่ยงในการระบาด', series: [] },
+          ];
+
+          response.data.forEach((item: any) => {
+            newDataset[0].series.push({
+              name: new Date(item.create_at).toLocaleDateString(), // Format x-axis as date
+              value: item.accuracy_7_day,
+            });
+            newDataset[1].series.push({
+              name: new Date(item.create_at).toLocaleDateString(),
+              value: item.accuracy_14_day,
+            });
+            newDataset[2].series.push({
+              name: new Date(item.create_at).toLocaleDateString(),
+              value: item.accuracy_outbreak,
+            });
+          });
+
+          // Reassign the dataset to trigger change detection
+          this.dataset_powder = newDataset;
+
+          const minValue = Math.min(
+            ...this.dataset_powder.flatMap((d) => d.series.map((s) => s.value))
+          );
+
+          this.yScaleMinPowder = minValue * 0.9;
+        }
+      },
+      error: (error) => {
+        console.error(error);
+      },
+    });
+
+    this.#adaptiveService.getAdaptivePlotPowder('newfall').subscribe({
+      next: (response: any) => {
+        if (response.status == 200) {
+          const newDataset: {
+            name: string;
+            series: { name: string; value: number }[];
+          }[] = [
+            { name: 'การเกิดโรคในอีก 7 วัน', series: [] },
+            { name: 'การเกิดโรคในอีก 14 วัน', series: [] },
+            { name: 'ความเสี่ยงในการระบาด', series: [] },
+          ];
+
+          response.data.forEach((item: any) => {
+            newDataset[0].series.push({
+              name: new Date(item.create_at).toLocaleDateString(), // Format x-axis as date
+              value: item.accuracy_7_day,
+            });
+            newDataset[1].series.push({
+              name: new Date(item.create_at).toLocaleDateString(),
+              value: item.accuracy_14_day,
+            });
+            newDataset[2].series.push({
+              name: new Date(item.create_at).toLocaleDateString(),
+              value: item.accuracy_outbreak,
+            });
+          });
+
+          // Reassign the dataset to trigger change detection
+          this.dataset_newfall = newDataset;
+
+          const minValue = Math.min(
+            ...this.dataset_newfall.flatMap((d) => d.series.map((s) => s.value))
+          );
+
+          this.yScaleMinNewfall = minValue * 0.9;
+        }
+      },
+      error: (error) => {
+        console.error(error);
+      },
     });
   }
 
-  selectProvince(event: Provinces) {
-    const province_id = event.id;
-    const district_data = this.provinces?.filter(
-      (province) => province.id === province_id
-    ) as Provinces[];
-    const districts = district_data[0].amphure;
-    this.districts = districts;
-
-    this.filterGroup.patchValue({
-      province: event.name_th,
-      district: null,
-      tambon: null,
-    });
-
-    this.selectedProvince = event; // อัปเดต selectedProvince
-    this.selectedDistrict = null; // รีเซ็ตอำเภอ
-    this.selectedTambon = null; // รีเซ็ตตำบล
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.updateChartSize();
   }
 
-  selectDistrict(event: District) {
-    const district_id = event.id;
-    const tambon_data = this.districts?.filter(
-      (district) => district.id === district_id
-    ) as District[];
-    const tambons = tambon_data[0].tambon;
-    this.tambons = tambons;
+  updateChartSize(): void {
+    const width = window.innerWidth * 0.9; // 90% of the window width
+    const height = window.innerHeight * 0.5; // 50% of the window height
 
-    this.filterGroup.patchValue({
-      district: event.name_th,
-      tambon: null,
-    });
+    const widthLimit = 800;
+    const heightLimit = 400;
 
-    this.selectedDistrict = event; // อัปเดตอำเภอ
-    this.selectedTambon = null; // รีเซ็ตตำบล
-  }
-
-  selectTambon(event: Tambon) {
-    this.filterGroup.patchValue({
-      tambon: event.name_th,
-    });
-
-    this.selectedTambon = event; // อัปเดตตำบล
+    // Limit the chart size to prevent overflow
+    if (width > widthLimit) {
+      this.view = [widthLimit, height];
+    } else if (height > heightLimit) {
+      this.view = [width, heightLimit];
+    } else {
+      this.view = [width, height];
+    }
   }
 }

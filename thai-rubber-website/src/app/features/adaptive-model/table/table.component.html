@@ -1,0 +1,92 @@
+<section class="example-container mat-elevation-z8" tabindex="0">
+  <table mat-table [dataSource]="dataSource">
+    <!-- Position Column -->
+    <ng-container matColumnDef="create_at">
+      <th mat-header-cell *matHeaderCellDef>วันที่</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.create_at | thaiDate }}
+      </td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="sevirity">
+      <th mat-header-cell *matHeaderCellDef>ความรุนแรง</th>
+      <td mat-cell *matCellDef="let element">{{ element.sevirity }}</td>
+    </ng-container>
+
+    <!-- Weight Column -->
+    <ng-container matColumnDef="true_label_7_day">
+      <th mat-header-cell *matHeaderCellDef>true_label_7_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.true_label_7_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="predicted_label_7_day">
+      <th mat-header-cell *matHeaderCellDef>predicted_label_7_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.predicted_label_7_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="accuracy_7_day">
+      <th mat-header-cell *matHeaderCellDef>accuracy_7_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.accuracy_7_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="true_label_14_day">
+      <th mat-header-cell *matHeaderCellDef>true_label_14_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.true_label_14_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="predicted_label_14_day">
+      <th mat-header-cell *matHeaderCellDef>predicted_label_14_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.predicted_label_14_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="accuracy_14_day">
+      <th mat-header-cell *matHeaderCellDef>accuracy_14_day</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.accuracy_14_day }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="true_label_outbreak">
+      <th mat-header-cell *matHeaderCellDef>true_label_outbreak</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.true_label_outbreak }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="predicted_label_outbreak">
+      <th mat-header-cell *matHeaderCellDef>predicted_label_outbreak</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.predicted_label_outbreak }}
+      </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container matColumnDef="accuracy_outbreak">
+      <th mat-header-cell *matHeaderCellDef>accuracy_outbreak</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.accuracy_outbreak }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row sticky *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</section>

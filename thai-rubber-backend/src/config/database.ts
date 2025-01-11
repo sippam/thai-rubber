@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST, // Replace with your MySQL host (e.g., 127.0.0.1)
   user: process.env.DB_USER, // Replace with your MySQL username
   password: process.env.DB_PASSWORD, // Replace with your MySQL password
-  database: process.env.DB_DATABSE, // Replace with your database name
+  database: 'thai_rubber', // Replace with your database name
   waitForConnections: true,
   connectionLimit: 10, // Number of connections in the pool
   queueLimit: 0,

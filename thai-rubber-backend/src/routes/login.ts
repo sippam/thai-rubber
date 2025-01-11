@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import e, { Router, Request, Response } from "express";
 import dotenv from "dotenv";
 import pool from "../config/database";
 import bcrypt from "bcrypt";
@@ -11,6 +11,7 @@ const router: Router = Router();
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name, tel, position } = req.body;
+    console.log(email, password, name, tel, position);
 
     // Validate input fields
     if (!email || !password || !name || !tel || !position) {
