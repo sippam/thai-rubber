@@ -179,14 +179,96 @@ def handle_text_message(event):
 
     # Check if user is already registered
     is_register = have_user(mydb, mycursor, user_id)
-    if not is_register:
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="คุณยังไม่ได้ลงทะเบียน!"))
 
     if is_register and text == "ลงทะเบียนเข้าใช้งาน":
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text="คุณได้ลงทะเบียนเรียบร้อยแล้ว!"))
         return
+    
+    if user_id not in user_register_state and text == "ลงทะเบียนเข้าใช้งาน":
+        user_register_state[user_id] = "start"
+        registration_data[user_id] = {
+            "id": user_id, "line_name": profile.display_name}
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="กรุณากรอกเบอร์โทรติดต่อ"))
+    elif user_id in user_register_state:
+        state = user_register_state[user_id]
+        print("state", state)
+        if state == "start":
+            print("wow")
+            registration_data[user_id]['tel'] = text
+            user_register_state[user_id] = "address"
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text="กรุณากรอกที่อยู่ของคุณ"))
+        elif state == "address":
+            address = text
+            result = get_geocode(address)
+            registration_data[user_id]['address'] = text
+            registration_data[user_id]['address_format'] = result["formatted_address"]
+            registration_data[user_id]['latitude'] = float(
+                result["latitude"])
+            registration_data[user_id]['longitude'] = float(
+                result["longitude"])
+            user_register_state[user_id] = "area"
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(
+                text="กรุณากรอกขนาดพื้นที่ (ไร่)"))
+        elif state == "area":
+            registration_data[user_id]['area'] = text
+            user_register_state[user_id] = "land_type"
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(
+                text="กรุณากรอกลักษณะพื้นที่ของคุณ"))
+
+        elif state == "land_type":
+            registration_data[user_id]['land_type'] = text
+            user_register_state[user_id] = "soil_type"
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text="กรุณากรอกลักษณะดินของคุณ"))
+
+        elif state == "soil_type":
+            registration_data[user_id]['soil_type'] = text
+            user_register_state[user_id] = "rubber_type"
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text="กรุณากรอกพันธุ์ยางของคุณ"))
+
+        elif state == "rubber_type":
+            registration_data[user_id]['rubber_type'] = text
+            user_register_state[user_id] = "weather_station"
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(
+                text="มีเครื่องวัดสภาพอากาศหรือไม่ (พิมพ์ 'มี' หรือ 'ไม่มี')"))
+
+        elif state == "weather_station":
+            if text == "มี":
+                registration_data[user_id]['weather_station'] = True
+                user_register_state[user_id] = "weather_serial"
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(
+                    text="กรุณากรอก Serial ของเครื่องวัดสภาพอากาศ"))
+            else:
+                registration_data[user_id]['weather_station'] = False
+                registration_data[user_id]['weather_serial'] = None
+                user_register_state.pop(user_id)
+                register_user(mydb, mycursor, registration_data[user_id])
+                line_bot_api.reply_message(
+                    event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
+
+        elif state == "weather_serial":
+            registration_data[user_id]['weather_serial'] = text
+            user_register_state.pop(user_id)
+            register_user(mydb, mycursor, registration_data[user_id])
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
+
+            # Editing process
+        elif state.startswith("edit_"):
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
+
+        else:
+            line_bot_api.reply_message(
+                event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
+
+    if (not is_register and text != "ลงทะเบียนเข้าใช้งาน") or (not is_register and user_id not in user_register_state):
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="คุณยังไม่ได้ลงทะเบียน!"))
 
   # ตรวจสอบ State ของผู้ใช้
     if user_id in user_register_state:
@@ -337,84 +419,86 @@ def handle_text_message(event):
             event.reply_token, TextSendMessage(text="คุณยังไม่ได้ลงทะเบียน!"))
         return
 
-    if user_id not in user_register_state and text == "ลงทะเบียนเข้าใช้งาน":
-        user_register_state[user_id] = "start"
-        registration_data[user_id] = {
-            "id": user_id, "line_name": profile.display_name}
-        line_bot_api.reply_message(
-            event.reply_token, TextSendMessage(text="กรุณากรอกเบอร์โทรติดต่อ"))
-    elif user_id in user_register_state:
-        state = user_register_state[user_id]
-        if state == "start":
-            registration_data[user_id]['tel'] = text
-            user_register_state[user_id] = "address"
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text="กรุณากรอกที่อยู่ของคุณ"))
-        elif state == "address":
-            address = text
-            result = get_geocode(address)
-            registration_data[user_id]['address'] = text
-            registration_data[user_id]['address_format'] = result["formatted_address"]
-            registration_data[user_id]['latitude'] = float(
-                result["latitude"])
-            registration_data[user_id]['longitude'] = float(
-                result["longitude"])
-            user_register_state[user_id] = "area"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                text="กรุณากรอกขนาดพื้นที่ (ไร่)"))
-        elif state == "area":
-            registration_data[user_id]['area'] = text
-            user_register_state[user_id] = "land_type"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                text="กรุณากรอกลักษณะพื้นที่ของคุณ"))
+    # if user_id not in user_register_state and text == "ลงทะเบียนเข้าใช้งาน":
+    #     user_register_state[user_id] = "start"
+    #     registration_data[user_id] = {
+    #         "id": user_id, "line_name": profile.display_name}
+    #     line_bot_api.reply_message(
+    #         event.reply_token, TextSendMessage(text="กรุณากรอกเบอร์โทรติดต่อ"))
+    # elif user_id in user_register_state:
+    #     state = user_register_state[user_id]
+    #     print("state", state)
+    #     if state == "start":
+    #         print("wow")
+    #         registration_data[user_id]['tel'] = text
+    #         user_register_state[user_id] = "address"
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text="กรุณากรอกที่อยู่ของคุณ"))
+    #     elif state == "address":
+    #         address = text
+    #         result = get_geocode(address)
+    #         registration_data[user_id]['address'] = text
+    #         registration_data[user_id]['address_format'] = result["formatted_address"]
+    #         registration_data[user_id]['latitude'] = float(
+    #             result["latitude"])
+    #         registration_data[user_id]['longitude'] = float(
+    #             result["longitude"])
+    #         user_register_state[user_id] = "area"
+    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #             text="กรุณากรอกขนาดพื้นที่ (ไร่)"))
+    #     elif state == "area":
+    #         registration_data[user_id]['area'] = text
+    #         user_register_state[user_id] = "land_type"
+    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #             text="กรุณากรอกลักษณะพื้นที่ของคุณ"))
 
-        elif state == "land_type":
-            registration_data[user_id]['land_type'] = text
-            user_register_state[user_id] = "soil_type"
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text="กรุณากรอกลักษณะดินของคุณ"))
+    #     elif state == "land_type":
+    #         registration_data[user_id]['land_type'] = text
+    #         user_register_state[user_id] = "soil_type"
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text="กรุณากรอกลักษณะดินของคุณ"))
 
-        elif state == "soil_type":
-            registration_data[user_id]['soil_type'] = text
-            user_register_state[user_id] = "rubber_type"
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text="กรุณากรอกพันธุ์ยางของคุณ"))
+    #     elif state == "soil_type":
+    #         registration_data[user_id]['soil_type'] = text
+    #         user_register_state[user_id] = "rubber_type"
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text="กรุณากรอกพันธุ์ยางของคุณ"))
 
-        elif state == "rubber_type":
-            registration_data[user_id]['rubber_type'] = text
-            user_register_state[user_id] = "weather_station"
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                text="มีเครื่องวัดสภาพอากาศหรือไม่ (พิมพ์ 'มี' หรือ 'ไม่มี')"))
+    #     elif state == "rubber_type":
+    #         registration_data[user_id]['rubber_type'] = text
+    #         user_register_state[user_id] = "weather_station"
+    #         line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #             text="มีเครื่องวัดสภาพอากาศหรือไม่ (พิมพ์ 'มี' หรือ 'ไม่มี')"))
 
-        elif state == "weather_station":
-            if text == "มี":
-                registration_data[user_id]['weather_station'] = True
-                user_register_state[user_id] = "weather_serial"
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(
-                    text="กรุณากรอก Serial ของเครื่องวัดสภาพอากาศ"))
-            else:
-                registration_data[user_id]['weather_station'] = False
-                registration_data[user_id]['weather_serial'] = None
-                user_register_state.pop(user_id)
-                register_user(mydb, mycursor, registration_data[user_id])
-                line_bot_api.reply_message(
-                    event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
+    #     elif state == "weather_station":
+    #         if text == "มี":
+    #             registration_data[user_id]['weather_station'] = True
+    #             user_register_state[user_id] = "weather_serial"
+    #             line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #                 text="กรุณากรอก Serial ของเครื่องวัดสภาพอากาศ"))
+    #         else:
+    #             registration_data[user_id]['weather_station'] = False
+    #             registration_data[user_id]['weather_serial'] = None
+    #             user_register_state.pop(user_id)
+    #             register_user(mydb, mycursor, registration_data[user_id])
+    #             line_bot_api.reply_message(
+    #                 event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
 
-        elif state == "weather_serial":
-            registration_data[user_id]['weather_serial'] = text
-            user_register_state.pop(user_id)
-            register_user(mydb, mycursor, registration_data[user_id])
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
+    #     elif state == "weather_serial":
+    #         registration_data[user_id]['weather_serial'] = text
+    #         user_register_state.pop(user_id)
+    #         register_user(mydb, mycursor, registration_data[user_id])
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
 
-            # Editing process
-        elif state.startswith("edit_"):
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
+    #         # Editing process
+    #     elif state.startswith("edit_"):
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
 
-        else:
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
+    #     else:
+    #         line_bot_api.reply_message(
+    #             event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
 
     if text == "สภาพอากาศ":
         # mycursor.execute("USE thai_rubber")
