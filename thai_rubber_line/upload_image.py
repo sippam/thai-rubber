@@ -160,7 +160,7 @@ def upload_image(mydb, mycursor, user_id, message_content):
         wind_speed_10m_max = round(float(wind_speed_10m_max), 2)
         wind_direction_10m_dominant = round(
             float(wind_direction_10m_dominant), 2)
-        wind_gusts_10m_max = round(float(daily_wind_gusts_10m_max), 2)
+        wind_gusts_10m_max = round(float(wind_gusts_10m_max), 2)
         shortwave_radiation_sum = round(float(shortwave_radiation_sum), 2)
         relative_humidity_2m = round(float(relative_humidity_2m), 2)
         soil_moisture_9_to_27cm = round(float(soil_moisture_9_to_27cm), 2)
