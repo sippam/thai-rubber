@@ -83,6 +83,11 @@ def handle_image_message(event):
     # Get the image content
     user_id = event.source.user_id
 
+    is_register = have_user(mydb, mycursor, user_id)
+    if not register_user:
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="คุณยังไม่ได้ลงทะเบียน!"))
+        
     message_content = line_bot_api.get_message_content(event.message.id)
     image_path = f"received_{event.message.id}.jpg"
 
