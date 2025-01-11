@@ -179,6 +179,10 @@ def handle_text_message(event):
 
     # Check if user is already registered
     is_register = have_user(mydb, mycursor, user_id)
+    if not is_register:
+        line_bot_api.reply_message(
+            event.reply_token, TextSendMessage(text="คุณยังไม่ได้ลงทะเบียน!"))
+
     if is_register and text == "ลงทะเบียนเข้าใช้งาน":
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text="คุณได้ลงทะเบียนเรียบร้อยแล้ว!"))
