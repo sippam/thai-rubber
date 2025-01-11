@@ -40,7 +40,9 @@
           <mat-date-range-picker #picker></mat-date-range-picker>
         </mat-form-field>
       </div>
-      <div class="flex flex-col items-center 2xl:flex-row w-full justify-center">
+      <div
+        class="flex flex-col items-center 2xl:flex-row w-full justify-center"
+      >
         @if(dataset_powder[0].series.length > 0) {
         <ngx-charts-line-chart
           [view]="view"
@@ -58,7 +60,13 @@
         >
         </ngx-charts-line-chart>
         }@else {
-        <div>ไม่พบข้อูล</div>
+        <div
+          [style.width.px]="view[0]"
+          [style.height.px]="view[1]"
+          class="flex items-center justify-center text-center"
+        >
+          ไม่พบข้อมูล
+        </div>
         }
         <div>
           <app-table disease="powder"></app-table>
@@ -90,7 +98,9 @@
           <mat-date-range-picker #picker2></mat-date-range-picker>
         </mat-form-field>
       </div>
-      <div class="flex flex-col items-center 2xl:flex-row w-full justify-center">
+      <div
+        class="flex flex-col items-center 2xl:flex-row w-full justify-center"
+      >
         @if(dataset_newfall[0].series.length > 0) {
         <ngx-charts-line-chart
           [view]="view"
@@ -108,7 +118,13 @@
         >
         </ngx-charts-line-chart>
         }@else {
-        <div>ไม่พบข้อูล</div>
+        <div
+          [style.width.px]="view[0]"
+          [style.height.px]="view[1]"
+          class="flex items-center justify-center text-center"
+        >
+          <div>ไม่พบข้อมูล</div>
+        </div>
         }
         <div>
           <app-table disease="newfall"></app-table>

@@ -312,4 +312,5 @@ export class AdaptiveModelComponent implements OnInit {
       this.view = [width, height];
     }
   }
+
 }
