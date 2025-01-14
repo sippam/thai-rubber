@@ -3,6 +3,7 @@ import lineLoginRouter from "./routes/login"; // Ensure this is a TypeScript fil
 import lineUserProfile from "./routes/line-profile";
 import user from "./routes/user";
 import adaptive from "./routes/adaptive";
+import npk from "./routes/npk";
 const cors = require("cors");
 
 const app: Application = express();
@@ -18,6 +19,7 @@ app.use("/api", lineLoginRouter);
 app.use("/api", lineUserProfile);
 app.use("/api", user);
 app.use("/api", adaptive);
+app.use("/api", npk);
 
 // Start the server
 app.listen(port, () => {
