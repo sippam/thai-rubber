@@ -72,19 +72,21 @@ def change_user_address(mydb, mycursor, data):
     if result[0] > 0:  # มีข้อมูลอยู่แล้ว -> ทำการ Update
         sql = """
         UPDATE address 
-        SET address = %s, address_format = %s, latitude = %s, longitude = %s 
+        SET address = %s, address_format = %s, province = %s, district = %s, subdistrict = %s, latitude = %s, longitude = %s 
         WHERE id = %s
         """
         value = (data['address'], data['address_format'],
+                 data['province'], data['district'], data['subdistrict'],
                  data['latitude'], data['longitude'], data['id'])
         mycursor.execute(sql, value)
         print("Updated existing user address.")
     else:  # ไม่มีข้อมูล -> ทำการ Insert
         sql = """
-        INSERT INTO address (id, address, address_format, latitude, longitude) 
+        INSERT INTO address (id, address, address_format,province, district, subdistrict, latitude, longitude) 
         VALUES (%s, %s, %s, %s, %s)
         """
         value = (data['id'], data['address'], data['address_format'],
+                 data['province'], data['district'], data['subdistrict'],
                  data['latitude'], data['longitude'])
         mycursor.execute(sql, value)
         print("Inserted new user address.")
@@ -477,7 +479,7 @@ def send_noti_first_time(mydb, mycursor, data):
 
     # sql = "SELECT COUNT(*) FROM weather_disease WHERE transaction_id = %s AND disease LIKE %s"
     sql = "SELECT COUNT(*) FROM uploads NATURAL JOIN weather_disease WHERE uploads.id = %s AND disease LIKE %s"
-    
+
     # sql = "SELECT COUNT(*) FROM uploads WHERE id = %s"
     value = (id, disease)
     mycursor.execute(sql, value)

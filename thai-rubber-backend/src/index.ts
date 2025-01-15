@@ -4,6 +4,7 @@ import lineUserProfile from "./routes/line-profile";
 import user from "./routes/user";
 import adaptive from "./routes/adaptive";
 import npk from "./routes/npk";
+import notification from "./routes/notifications"
 const cors = require("cors");
 
 const app: Application = express();
@@ -20,6 +21,7 @@ app.use("/api", lineUserProfile);
 app.use("/api", user);
 app.use("/api", adaptive);
 app.use("/api", npk);
+app.use("/api", notification);
 
 // Start the server
 app.listen(port, () => {

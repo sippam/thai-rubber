@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>แก้ไขข้อมูล</h2>
+<mat-dialog-content class="mat-typography">
+  <mat-form-field class="w-full">
+    <mat-label>เจ้าหน้าที่รับผิดชอบ</mat-label>
+    <input
+      matInput
+      placeholder="เจ้าหน้าที่รับผิดชอบ"
+      [formControl]="formControl"
+      [matAutocomplete]="autoValue"
+      (focus)="resetFilter()"
+    />
+    <mat-autocomplete
+      #autoValue="matAutocomplete"
+      (optionSelected)="selectValue($event.option.value)"
+    >
+      @if(!formControl.value || formControl.value.length === 0) {
+      <mat-option disabled>กรุณากรอกตัวอักษรอย่างน้อย 1 ตัว</mat-option>
+      } @for (filter of filteredFrom | async; track $index) {
+      <mat-option [value]="filter">
+        {{ filter.name }}
+      </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+  
+  <mat-form-field>
+    <mat-label>รายละเอียด</mat-label>
+    <input matInput placeholder="รายละเอียด"[(ngModel)]="datail" />
+  </mat-form-field>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>ยกเลิก</button>
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial (click)="update()">ยืนยัน</button>
+</mat-dialog-actions>

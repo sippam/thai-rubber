@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { authenticateJWT } from "../middleware/middleware";
 import { Middleware } from "../models/middleware";
 import pool from "../config/database";
@@ -25,6 +25,23 @@ router.get(
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+router.get(
+  "/user",
+  authenticateJWT,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const [result]: any = await pool.query("SELECT id, name FROM officer");
+
+      res.status(200).json({
+        status: 200,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
     }
   }
 );
