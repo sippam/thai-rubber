@@ -22,15 +22,33 @@
       }
     </mat-autocomplete>
   </mat-form-field>
-  
-  <mat-form-field>
-    <mat-label>รายละเอียด</mat-label>
-    <input matInput placeholder="รายละเอียด"[(ngModel)]="datail" />
-  </mat-form-field>
 
+  <div class="w-full flex space-x-4 justify-between">
+    <mat-form-field>
+      <mat-label>สถานะ</mat-label>
+      <mat-select [(ngModel)]="select_status">
+        @for (status of status_array; track status) {
+        <mat-option [value]="status.value">{{ status.text }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>รายละเอียด</mat-label>
+      <input matInput placeholder="รายละเอียด" [(ngModel)]="datail" />
+    </mat-form-field>
+  </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>ยกเลิก</button>
-  <button mat-button [mat-dialog-close]="true" cdkFocusInitial (click)="update()">ยืนยัน</button>
+  <button
+    mat-button
+    [mat-dialog-close]="true"
+    cdkFocusInitial
+    (click)="update()"
+    color="primary"
+  >
+    ยืนยัน
+  </button>
 </mat-dialog-actions>

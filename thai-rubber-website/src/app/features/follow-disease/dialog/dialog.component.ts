@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { NotificationService } from '@services/notification/notification.service';
 import { UserService } from '@services/user/user.service';
 import { map, Observable, startWith } from 'rxjs';
@@ -22,6 +23,7 @@ import { map, Observable, startWith } from 'rxjs';
     ReactiveFormsModule,
     AsyncPipe,
     FormsModule,
+    MatSelectModule,
   ],
   templateUrl: './dialog.component.html',
   styleUrl: './dialog.component.scss',
@@ -36,6 +38,16 @@ export class DialogComponent {
   selectedValue: any = null;
   options: any[] = [];
   datail: string = '';
+  select_status: string = '';
+
+  status_array = [
+    { value: 'request_not_accept', text: 'ยังไม่ได้รับคำร้อง'},
+    { value: 'process_of_contact', text: 'กำลังติดต่อ'},
+    { value: 'process', text: 'กำลังดำเนินการ'},
+    { value: 'explore', text: 'สำรวจ'},
+    { value: 'follow_watchout', text: 'ติดตาม/ระวัง'},
+    { value: 'heal', text: 'รักษา'},
+  ]
 
   ngOnInit(): void {
     this._setupFilter();
@@ -52,9 +64,13 @@ export class DialogComponent {
       .getSpecificNotification(this.data.notification_id)
       .subscribe({
         next: (response: any) => {
-          const data = {id: response.data.officer_id, name: response.data.name};
+          const data = {
+            id: response.data.officer_id,
+            name: response.data.name,
+          };
           this.selectedValue = data;
           this.formControl.setValue(response.data.name);
+          this.select_status = response.data.status;
           this.datail = response.data.details;
         },
         error: (error) => {
@@ -109,6 +125,7 @@ export class DialogComponent {
       .updateNotification(
         this.data.notification_id,
         this.selectedValue.id,
+        this.select_status,
         this.datail
       )
       .subscribe({

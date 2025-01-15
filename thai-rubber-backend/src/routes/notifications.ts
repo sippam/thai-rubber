@@ -11,7 +11,7 @@ router.get(
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       const offset = (page - 1) * limit;
 
       const [countResult]: any = await pool.query(
@@ -39,43 +39,48 @@ router.get(
   }
 );
 
-router.post("/update-notification", authenticateJWT, async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-  try {
-    const { notification_id, officer_id, detail } = req.body;
+router.post(
+  "/update-notification",
+  authenticateJWT,
+  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const { notification_id, officer_id, status, detail } = req.body;
 
-    const [result] = await pool.query(
-      "UPDATE notifications SET officer_id = ?, details = ? WHERE notification_id = ?",
-      [officer_id, detail, notification_id]
-    )
+      const [result] = await pool.query(
+        "UPDATE notifications SET officer_id = ?, status = ?, details = ? WHERE notification_id = ?",
+        [officer_id, status, detail, notification_id]
+      );
 
-    res.status(200).json({
-      status: 200,
-      message: "Notification updated successfully",
-    });
-    
-  } catch (error) {
-    next(error);
+      res.status(200).json({
+        status: 200,
+        message: "Notification updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
-router.get("/notification", authenticateJWT, async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-  try {
-    const { id } = req.query;
+router.get(
+  "/notification",
+  authenticateJWT,
+  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+      const { id } = req.query;
 
-    const [result]:any = await pool.query(
-      "SELECT officer_id, name, details FROM notifications LEFT JOIN officer ON notifications.officer_id = officer.id WHERE notification_id = ?",
-      [id]
-    )
+      const [result]: any = await pool.query(
+        "SELECT officer_id, name, status, details FROM notifications LEFT JOIN officer ON notifications.officer_id = officer.id WHERE notification_id = ?",
+        [id]
+      );
 
-    res.status(200).json({
-      status: 200,
-      data: result[0],
-    });
-    
-  } catch (error) {
-    next(error);
+      res.status(200).json({
+        status: 200,
+        data: result[0],
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
-
+);
 
 export default router;

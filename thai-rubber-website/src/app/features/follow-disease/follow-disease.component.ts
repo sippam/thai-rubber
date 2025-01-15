@@ -74,106 +74,13 @@ export class FollowDiseaseComponent implements OnInit {
     this.selectedOfficer = event; // อัปเดต selectedProvince
   }
 
-  // selectedValue: any = null;
-  // options: Officer[] = [];
-  // formControl = new FormControl(); // FormControl สำหรับควบคุม input
-  // filteredFrom!: Observable<any[]>; // รายการข้อมูลที่กรองได้
-
-  // ngOnChanges(changes: SimpleChanges): void {
-  //   // ถ้า options เปลี่ยน รีเซ็ต filter
-  //   if (changes['options'] && !changes['options'].firstChange) {
-  //     this._setupFilter(); // โหลดตัวกรองใหม่
-  //     this.formControl.setValue(''); // ล้างค่า input
-  //   }
-  // }
-
-  // private _setupFilter(): void {
-  //   this.filteredFrom = this.formControl.valueChanges.pipe(
-  //     startWith(''),
-  //     map((value) =>
-  //       typeof value === 'string'
-  //         ? this._filter(value, this.options)
-  //         : this.options.slice()
-  //     )
-  //   );
-  // }
-
-  // // ฟังก์ชันกรองข้อมูล
-  // private _filter(value: string, options: Officer[]): Officer[] {
-  //   if (!options || options.length === 0) {
-  //     return []; // ถ้าไม่มี options ให้คืนค่ากลับเป็น array ว่าง
-  //   }
-
-  //   const filterValue = value.toLowerCase(); // แปลงค่าที่กรอกเป็นตัวพิมพ์เล็ก
-  //   return options.filter(
-  //     (option) => option.name.toLowerCase().includes(filterValue) // กรองเฉพาะค่าที่ตรงกับคำที่กรอก
-  //   );
-  // }
-
-  // // ฟังก์ชันเลือกค่า
-  // selectValue(value: Officer, row: any): void {
-  //   if (row && row.formControl) {
-  //     // ตรวจสอบว่า formControl ถูกสร้าง
-  //     row.formControl.setValue(value.name); // อัปเดตเฉพาะแถวนี้
-  //     const officer_id = value.id;
-
-  //     this.#notificationsService
-  //       .updateOfficer(officer_id.toString(), row.id.toString())
-  //       .subscribe({
-  //         next: (response: any) => {
-  //           console.log(`Officer updated for row ${row.id}:`, response);
-  //         },
-  //         error: (error) => {
-  //           console.error(`Error updating officer for row ${row.id}:`, error);
-  //         },
-  //       });
-  //   } else {
-  //     console.error('FormControl is undefined for the row:', row);
-  //   }
-  // }
-
-  // resetFilter(): void {
-  //   if (!this.selectedValue) {
-  //     this.formControl.setValue(''); // ล้างค่าหากไม่ได้เลือก
-  //   }
-  //   this._setupFilter(); // รีเฟรชรายการ
-  // }
-
   pageSize = 10;
   pageIndex = 0;
   length = 0;
 
   ngOnInit(): void {
     this.getNoti();
-    // this.#userService.getAllUsers().subscribe({
-    //   next: (response: any) => {
-    //     this.options = response.data;
-
-    //     // เพิ่ม formControl และ filteredFrom ให้แต่ละแถว
-    //     this.dataSource = this.dataSource.map((row) => ({
-    //       ...row,
-    //       formControl: new FormControl(''), // ตรวจสอบว่า formControl ถูกสร้าง
-    //       filteredFrom: new Observable<Officer[]>(), // Observable สำหรับข้อมูลที่กรอง
-    //     }));
-
-    //     // ตั้งค่า filter สำหรับแต่ละแถว
-    //     this.dataSource.forEach((row) => {
-    //       this.setupFilter(row);
-    //     });
-    //   },
-    //   error: (error) => {
-    //     console.log(error);
-    //   },
-    // });
   }
-
-  // setupFilter(row: any): void {
-  //   row.filteredFrom = row.formControl.valueChanges.pipe(
-  //     startWith(''),
-  //     map((value: string) => this._filter(value || '', this.options))
-  //   );
-  // }
-
   onPageChange(event: PageEvent) {
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;

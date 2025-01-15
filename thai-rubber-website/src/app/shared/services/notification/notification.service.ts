@@ -21,6 +21,7 @@ export class NotificationService {
   updateNotification(
     notification_id: string,
     officer_id: string,
+    status: string,
     detail: string
   ) {
     return this.http.post(
@@ -28,6 +29,7 @@ export class NotificationService {
       {
         officer_id,
         notification_id,
+        status,
         detail,
       },
       {
