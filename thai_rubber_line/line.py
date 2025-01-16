@@ -782,7 +782,7 @@ def handle_text_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text=text_format))
 
-    if text == "ข้อมูลโรค":
+    if text == "ติดต่อเจ้าหน้าที่":
         data = get_notification(mydb, mycursor, user_id)
         print("data", data)
         status_array = {
