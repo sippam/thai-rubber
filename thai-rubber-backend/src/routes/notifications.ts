@@ -47,7 +47,7 @@ router.post(
       const { notification_id, officer_id, status, detail } = req.body;
 
       const [result] = await pool.query(
-        "UPDATE notifications SET officer_id = ?, status = ?, details = ?, update_at WHERE notification_id = ?",
+        "UPDATE notifications SET officer_id = ?, status = ?, details = ?, update_at = ? WHERE notification_id = ?",
         [officer_id, status, detail, notification_id, new Date()]
       );
 
