@@ -24,6 +24,7 @@ import { map, Observable, startWith } from 'rxjs';
     MatFormField,
     MatInputModule,
     MatLabel,
+    JsonPipe,
   ],
   templateUrl: './search-select.component.html',
   styleUrl: './search-select.component.scss',
@@ -41,6 +42,10 @@ export class SearchSelectComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this._setupFilter();
   }
+  allData = {
+    id: 0,
+    name_th: 'ทั้งหมด',
+  };
 
   ngOnChanges(changes: SimpleChanges): void {
     // ถ้า options เปลี่ยน รีเซ็ต filter
@@ -79,5 +84,5 @@ export class SearchSelectComponent implements OnInit, OnChanges {
       this.formControl.setValue(''); // ล้างค่าหากไม่ได้เลือก
     }
     this._setupFilter(); // รีเฟรชรายการ
-  }  
+  }
 }

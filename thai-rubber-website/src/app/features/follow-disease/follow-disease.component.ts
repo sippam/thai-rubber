@@ -68,6 +68,15 @@ export class FollowDiseaseComponent implements OnInit {
     },
   ];
 
+  status_array: { [key: string]: string } = {
+    request_not_accept: 'ยังไม่ได้รับคำร้อง',
+    process_of_contact: 'กำลังติดต่อ',
+    process: 'กำลังดำเนินการ',
+    explore: 'สำรวจ',
+    follow_watchout: 'ติดตาม/ระวัง',
+    heal: 'รักษา',
+  };
+
   selectedOfficer: Officer | null = null;
 
   selectProvince(event: Officer) {

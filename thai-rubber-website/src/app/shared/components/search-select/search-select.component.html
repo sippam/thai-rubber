@@ -13,7 +13,8 @@
   >
     @if(!formControl.value || formControl.value.length === 0) {
     <mat-option disabled>กรุณากรอกตัวอักษรอย่างน้อย 1 ตัว</mat-option>
-    } @for (filter of filteredFrom | async; track $index) {
+    }
+    @for (filter of filteredFrom | async; track $index) {
     <mat-option [value]="filter">
       {{ filter.name_th }}
     </mat-option>

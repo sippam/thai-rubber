@@ -31,10 +31,12 @@ import {
 import { SelectDropDownModule } from 'ngx-select-dropdown';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-import {
-  MatAutocompleteModule,
-} from '@angular/material/autocomplete';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { SearchSelectComponent } from '@components/search-select/search-select.component';
+import { DatabaseService } from '@services/database/database.service';
+import { ThaiDatePipe } from 'src/app/shared/pipes/thai-date.pipe';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 registerLocaleData(localeTh);
 
 @Component({
@@ -57,6 +59,9 @@ registerLocaleData(localeTh);
     CommonModule,
     MatAutocompleteModule,
     SearchSelectComponent,
+    ThaiDatePipe,
+    MatTableModule,
+    MatPaginatorModule,
   ],
   templateUrl: './database.component.html',
   styleUrl: './database.component.scss',
@@ -72,7 +77,33 @@ export class DatabaseComponent {
   factorGroup: FormGroup;
   databaseGroup: FormGroup;
 
+  displayedColumns: string[] = [
+    'transaction_id',
+    'name',
+    'disease',
+    'area',
+    'land_type',
+    'soil_type',
+    'rubber_type',
+    'temperature_min',
+    'temperature_max',
+    'temperature_avg',
+    'precipitation_sum',
+    'wind_speed',
+    'wind_direction',
+    'wind_gust',
+    'shortwave_radiation_sum',
+    'relative_humidity',
+    'soil_moisture',
+    'sevirity',
+    'forecast_7days',
+    'forecast_14days',
+    'risk',
+    'create_at',
+  ];
+
   #provincesService = inject(ProvinceService);
+  #databaseService = inject(DatabaseService);
   provinces: Provinces[] = [];
   districts: District[] = [];
   tambons: Tambon[] = [];
@@ -131,18 +162,20 @@ export class DatabaseComponent {
 
   factor_label = [
     { form_name: 'farmer_list', label: 'รายชื่อเกษตรกร' },
-    { form_name: 'plating_area', label: 'พื้นที่ปลูก' },
-    { form_name: 'name_rubber_type', label: 'ชื่อพันธุ์ยาง' },
-    { form_name: 'area', label: 'ลักษณะพื้นที่' },
-    { form_name: 'soil', label: 'ลักษณะดิน' },
     { form_name: 'disease_name', label: 'ชื่อโรค' },
-    { form_name: 'disease_level', label: 'ระดับความรุนแรงของโรค' },
+    { form_name: 'area', label: 'พื้นที่ปลูก' },
+    { form_name: 'land_type', label: 'ลักษณะพื้นที่' },
+    { form_name: 'soil_type', label: 'ลักษณะดิน' },
+    { form_name: 'rubber_type', label: 'ชื่อพันธุ์ยาง' },
     { form_name: 'temperature', label: 'อุณหภูมิ' },
-    { form_name: 'humidity', label: 'ความชื้นสัมพัทธ์' },
+    { form_name: 'precipitation_sum', label: 'ปริมาณน้ำฝนสะสม' },
     { form_name: 'wind_speed', label: 'ความเร็วลม' },
     { form_name: 'wind_direction', label: 'ทิศทางลม' },
-    { form_name: 'daily_rainfall', label: 'ปริมาณน้ำฝนต่อวัน' },
-    { form_name: 'rainy_days_per_month', label: 'จำนวนวันที่ฝนตกต่อเดือน' },
+    { form_name: 'wind_gust', label: 'ความเร็วลมกระโชก' },
+    { form_name: 'shortwave_radiation_sum', label: 'ปริมาณรังสีคลื่นสั้นสะสม' },
+    { form_name: 'relative_humidity', label: 'ความชื้นสัมพัทธ์' },
+
+    { form_name: 'sevirity', label: 'ระดับความรุนแรงของโรค' },
   ];
 
   constructor(private fb: FormBuilder) {
@@ -157,19 +190,20 @@ export class DatabaseComponent {
     });
 
     this.factorGroup = this.fb.group({
-      farmer_list: [false],
-      plating_area: [false],
-      name_rubber_type: [false],
-      area: [false],
-      soil: [false],
-      disease_name: [false],
-      disease_level: [false],
-      temperature: [false],
-      humidity: [false],
-      wind_speed: [false],
-      wind_direction: [false],
-      daily_rainfall: [false],
-      rainy_days_per_month: [false],
+      disease_name: [true],
+      farmer_list: [true],
+      area: [true],
+      land_type: [true],
+      soil_type: [true],
+      rubber_type: [true],
+      temperature: [true],
+      precipitation_sum: [true],
+      wind_speed: [true],
+      wind_direction: [true],
+      wind_gust: [true],
+      shortwave_radiation_sum: [true],
+      relative_humidity: [true],
+      sevirity: [true],
     });
 
     this.databaseGroup = this.fb.group({
@@ -178,11 +212,116 @@ export class DatabaseComponent {
     });
   }
 
+  countPicture = 0;
+  dataSource = [
+    {
+      transaction_id: 1,
+      disease: 'Covid-19',
+      temperature_min: 30,
+      temperature_max: 35,
+      temperature_avg: 32,
+      precipitation_sum: 10,
+      wind_speed: 10,
+      wind_direction: 11,
+      wind_gust: 20,
+      shortwave_radiation_sum: 30,
+      relative_humidity: 40,
+      soil_moisture: 50,
+      sevirity: 1,
+      forecast_7days: 1,
+      forecast_14days: 1,
+      risk: 1,
+      create_at: '2021-08-01',
+    },
+  ];
+
+  forecast_7_14_days_decode: { [key: number]: string } = {
+    0: 'ไม่แสดงอาการ',
+    1: 'ความรุนแรงระดับ 1',
+    2: 'ความรุนแรงระดับ 2',
+    3: 'ความรุนแรงระดับ 3',
+    4: 'ร่องรอยซากโรค',
+  };
+
+  disease_decode(text: string) {
+    const raw_text = text.split('ระยะ')[0].trim();
+    const deocde_text = raw_text.includes('ราแป้ง') ? 'powder' : 'newfall';
+    return deocde_text;
+  }
+
+  risk_docode: { [key: string]: { [key: number]: string } } = {
+    powder: {
+      0: 'ต่ำ',
+      1: 'สูง',
+    },
+    newfall: {
+      0: 'ต่ำ',
+      1: 'ปานกลาง',
+      2: 'สูง',
+    },
+  };
+
+  pageSize = 10;
+  pageIndex = 0;
+  length = 0;
+
   ngOnInit() {
     // Fetch provinces and districts
     this.#provincesService.getAllProvinces().subscribe((data) => {
       this.provinces = data as Provinces[];
     });
+
+    this.#databaseService.getCountPicture().subscribe({
+      next: (response: any) => {
+        this.countPicture = response.data;
+      },
+    });
+
+    this.databaseGroup.valueChanges.subscribe((value) => {
+      this.#databaseService
+        .getCountPicture(value.dicease, value.disease_level)
+        .subscribe({
+          next: (response: any) => {
+            this.countPicture = response.data;
+          },
+        });
+    });
+
+    this.filterGroup.valueChanges.subscribe((value) => {
+      this.#databaseService
+        .getAllDatabaseTable(
+          value,
+          (this.pageIndex + 1).toString(),
+          this.pageSize.toString()
+        )
+        .subscribe({
+          next: (response: any) => {
+            this.dataSource = response.data;
+            this.length = response.totalRows;
+          },
+        });
+    });
+
+    this.#databaseService
+      .getAllDatabaseTable(
+        this.filterGroup.value,
+        (this.pageIndex + 1).toString(),
+        this.pageSize.toString()
+      )
+      .subscribe({
+        next: (response: any) => {
+          this.dataSource = response.data;
+          this.length = response.totalRows;
+        },
+      });
+  }
+
+  onPageChange(event: PageEvent) {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
+    console.log('event.pageIndex', event.pageIndex);
+
+    this.length = event.length;
   }
 
   selectProvince(event: Provinces) {
@@ -194,7 +333,7 @@ export class DatabaseComponent {
     this.districts = districts;
 
     this.filterGroup.patchValue({
-      province: event.name_th,
+      province: event.name_en,
       district: null,
       tambon: null,
     });
@@ -213,7 +352,7 @@ export class DatabaseComponent {
     this.tambons = tambons;
 
     this.filterGroup.patchValue({
-      district: event.name_th,
+      district: event.name_en,
       tambon: null,
     });
 
@@ -223,7 +362,7 @@ export class DatabaseComponent {
 
   selectTambon(event: Tambon) {
     this.filterGroup.patchValue({
-      tambon: event.name_th,
+      tambon: event.name_en,
     });
 
     this.selectedTambon = event; // อัปเดตตำบล
@@ -233,6 +372,31 @@ export class DatabaseComponent {
     this.selectedTypeRubber = event;
     this.filterGroup.patchValue({
       rubber: event.name_th,
+    });
+  }
+
+  download() {
+    window.open('http://localhost:3000/api/download-zip', '_blank');
+  }
+
+  handleDownloadCSV() {
+    this.#databaseService.downloadCSV(this.filterGroup.value).subscribe({
+      next: (response: Blob) => {
+        const blob = new Blob([response], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+
+        // สร้างลิงก์สำหรับดาวน์โหลดไฟล์
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.csv';
+        a.click();
+
+        // ลบ URL หลังจากใช้งาน
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading CSV:', err);
+      },
     });
   }
 }

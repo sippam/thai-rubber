@@ -72,9 +72,9 @@ export class LoginComponent {
     const emailErrors = this.email?.errors; // ดึงข้อผิดพลาดจาก email
 
     if (emailErrors?.['required']) {
-      this.errorMessage.set('Email is required'); // ข้อความเมื่อไม่กรอก Email
+      this.errorMessage.set('กรุณากรอกอีเมล์'); // ข้อความเมื่อไม่กรอก Email
     } else if (emailErrors?.['email']) {
-      this.errorMessage.set('Invalid email format'); // ข้อความเมื่อรูปแบบ Email ไม่ถูกต้อง
+      this.errorMessage.set('รูปแบบอีเมล์ไม่ถูกต้อง'); // ข้อความเมื่อรูปแบบ Email ไม่ถูกต้อง
     } else {
       this.errorMessage.set(''); // ลบข้อความเมื่อไม่มีข้อผิดพลาด
     }
