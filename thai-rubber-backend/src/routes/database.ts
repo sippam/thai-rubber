@@ -123,9 +123,9 @@ router.post(
 
       const sql = `
       SELECT 
-      transaction_id, line_name AS name, disease, area, land_type, soil_type, rubber_type, temperature_min, temperature_max, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, sevirity, forecast_7days, forecast_14days, risk, create_at
+      weather_disease.transaction_id AS transaction_id, line_name AS name, disease, area, land_type, soil_type, rubber_type, temperature_min, temperature_max, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, sevirity, forecast_7days, forecast_14days, risk, weather_disease.create_at AS create_at
        FROM weather_disease
-      NATURAL JOIN uploads
+      LEFT JOIN uploads ON weather_disease.transaction_id = uploads.transaction_id
       NATURAL JOIN address
       NATURAL JOIN plantation
       NATURAL JOIN customers
@@ -134,7 +134,7 @@ router.post(
         AND district LIKE ? 
         AND subdistrict LIKE ? 
         AND rubber_type LIKE ? 
-        AND create_at BETWEEN ? AND ?
+        AND weather_disease.create_at BETWEEN ? AND ?
         LIMIT ? OFFSET ?;
         `;
 
@@ -152,7 +152,7 @@ router.post(
 
       const [countResult]: any = await pool.query(
         `SELECT COUNT(*) AS total FROM weather_disease
-      NATURAL JOIN uploads
+      LEFT JOIN uploads ON weather_disease.transaction_id = uploads.transaction_id
       NATURAL JOIN address
       NATURAL JOIN plantation
       NATURAL JOIN customers
@@ -161,7 +161,7 @@ router.post(
         AND district LIKE ? 
         AND subdistrict LIKE ? 
         AND rubber_type LIKE ? 
-        AND create_at BETWEEN ? AND ?;`,
+        AND weather_disease.create_at BETWEEN ? AND ?;`,
         [
           `%${disease}%`,
           `%${province}%`,

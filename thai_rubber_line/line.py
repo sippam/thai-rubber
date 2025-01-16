@@ -780,6 +780,9 @@ def handle_text_message(event):
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text=text_format))
+    
+    # if text == "ข้อมูลโรค":
+        
 
 
 if __name__ == "__main__":

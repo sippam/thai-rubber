@@ -322,6 +322,18 @@ export class DatabaseComponent {
     console.log('event.pageIndex', event.pageIndex);
 
     this.length = event.length;
+    this.#databaseService
+      .getAllDatabaseTable(
+        this.filterGroup.value,
+        (this.pageIndex + 1).toString(),
+        this.pageSize.toString()
+      )
+      .subscribe({
+        next: (response: any) => {
+          this.dataSource = response.data;
+          this.length = response.totalRows;
+        },
+      });
   }
 
   selectProvince(event: Provinces) {
