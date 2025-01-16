@@ -492,3 +492,11 @@ def send_noti_first_time(mydb, mycursor, data):
         value = (transaction_id, id, disease, disease_level, risk)
         mycursor.execute(sql, value)
         print("Inserted new notification.")
+
+def get_notification(mydb, mycursor, id):
+    mycursor.execute("USE thai_rubber")
+    sql = "SELECT disease, status, create_at FROM notifications WHERE id = %s ORDER BY create_at DESC"
+    value = (id,)
+    mycursor.execute(sql, value)
+    myresult = mycursor.fetchall()
+    return myresult

@@ -1,4 +1,4 @@
-from database import connect_database, initialize_db, register_user, change_user_address, have_user, get_lat_long_user, change_user_tel, change_user_area, change_user_land_type, change_user_soil_type, change_user_rubber_type, change_user_weather_station, change_user_weather_serial, get_user_data, hour_add_weather
+from database import connect_database, initialize_db, register_user, change_user_address, have_user, get_lat_long_user, change_user_tel, change_user_area, change_user_land_type, change_user_soil_type, change_user_rubber_type, change_user_weather_station, change_user_weather_serial, get_user_data, hour_add_weather, get_notification
 from line_flex_message import flex_message_function
 
 from flask import Flask, request, abort
@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import threading
 import time
 from function import check_have_weather_station
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -458,7 +459,7 @@ def handle_text_message(event):
                 line_bot_api.reply_message(
                     event.reply_token, TextSendMessage(text="กรุณากรอก ตำบล อำเภอ และจังหวัดให้ครบถ้วน!"))
                 return
-            
+
             registration_data[user_id]['address'] = text
             registration_data[user_id]['address_format'] = result["formatted_address"]
             registration_data[user_id]['province'] = result["province"]
@@ -780,9 +781,35 @@ def handle_text_message(event):
         )
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
             text=text_format))
-    
-    # if text == "ข้อมูลโรค":
+
+    if text == "ข้อมูลโรค":
+        data = get_notification(mydb, mycursor, user_id)
+        print("data", data)
+        status_array = {
+            "request_not_accept": 'ยังไม่ได้รับคำร้อง',
+            "process_of_contact": 'กำลังติดต่อ',
+            "process": 'กำลังดำเนินการ',
+            "explore": 'สำรวจ',
+            "follow_watchout": 'ติดตาม/ระวัง',
+            "heal": 'รักษา',
+        }
+        summary_text = "ข้อมูลโรค:\n\n"
+        for index, (disease, status, create_at) in enumerate(data):
+            disease_format = disease.replace("\n", "")
+            
+            # เพิ่ม 7 ชั่วโมงให้เวลา UTC
+            thai_time = create_at + timedelta(hours=7)
         
+            # แสดงเฉพาะปี เดือน วัน
+            thai_date = thai_time.strftime("%Y-%m-%d")
+            
+            summary_text += f"- {disease} : {status_array[status]}\nวันที่พบ {thai_date}"
+            
+            
+            if index < len(data) - 1:
+                summary_text += "\n"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(
+            text=summary_text))
 
 
 if __name__ == "__main__":
