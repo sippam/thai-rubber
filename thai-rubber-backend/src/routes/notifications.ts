@@ -48,7 +48,13 @@ router.post(
 
       const [result] = await pool.query(
         "UPDATE notifications SET officer_id = ?, status = ?, details = ?, update_at = ? WHERE notification_id = ?",
-        [officer_id, status, detail, notification_id, new Date()]
+        [
+          officer_id,
+          status,
+          detail,
+          new Date().toISOString().slice(0, 19).replace("T", " "),
+          notification_id,
+        ]
       );
 
       res.status(200).json({
