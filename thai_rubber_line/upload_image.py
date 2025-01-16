@@ -209,6 +209,7 @@ def upload_image(mydb, mycursor, user_id, message_content):
     text_predict_7days = ""
     text_predict_14days = ""
     text_predict_risk = ""
+    text_disease = f"ความเสี่ยงในการระบาด: ต่ำ"
     if (str(predicted_class) == "6" or str(predicted_class) == "7" or str(predicted_class) == "8"):
         data_predict_7days = predict_powder_7days(InputDataForecast(**data_predict))
         data_predict_14days = predict_powder_14days(InputDataForecast(**data_predict))
@@ -225,7 +226,6 @@ def upload_image(mydb, mycursor, user_id, message_content):
         text_predict_7days = f"ระดับความรุนแรงในอีก 7 วันข้างหน้า: {PREDICT_NEWFALL_7_14DAYS_TEXT[data_predict_7days['predicted_label']]}"
         text_predict_14days = f"ระดับความรุนแรงในอีก 14 วันข้างหน้า: {PREDICT_NEWFALL_7_14DAYS_TEXT[data_predict_14days['predicted_label']]}"
         text_disease = f"ความเสี่ยงในการระบาด: {PREDICT_NEWFALL_DISEASE_TEXT[data_predict_risk['predicted_label']]}"
-        
     sql = """
     INSERT INTO weather_disease (transaction_id, disease, temperature_max, temperature_min, temperature_avg, precipitation_sum, wind_speed, wind_direction, wind_gust, shortwave_radiation_sum, relative_humidity, soil_moisture, sevirity, forecast_7days, forecast_14days, risk, create_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
     """
