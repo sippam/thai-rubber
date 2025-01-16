@@ -133,7 +133,10 @@ def handle_image_message(event):
         summary_text = "สรุปผลการวิเคราะห์:\n\n"
         for index, (name, details) in enumerate(summary.items()):
             avg_confidence = sum(details['confidence']) / details['count']
-            summary_text += f"- {name} มี {details['count']} รูป\n- {text_predict_7days}\n- {text_predict_14days}\n- {text_disease}"
+            if text_predict_7days == "" and text_predict_14days == "" and text_disease == "":
+                summary_text += f"- {name} มี {details['count']} รูป"
+            else:
+                summary_text += f"- {name} มี {details['count']} รูป\n- {text_predict_7days}\n- {text_predict_14days}\n- {text_disease}"
 
             if index < len(summary) - 1:
                 summary_text += "\n\n"
