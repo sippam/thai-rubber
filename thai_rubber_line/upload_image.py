@@ -209,7 +209,7 @@ def upload_image(mydb, mycursor, user_id, message_content):
     text_predict_7days = ""
     text_predict_14days = ""
     text_predict_risk = ""
-    if (str(predicted_class) == "7" or str(predicted_class) == "8" or str(predicted_class) == "9"):
+    if (str(predicted_class) == "6" or str(predicted_class) == "7" or str(predicted_class) == "8"):
         data_predict_7days = predict_powder_7days(InputDataForecast(**data_predict))
         data_predict_14days = predict_powder_14days(InputDataForecast(**data_predict))
         data_predict_risk = predict_powder_risk(InputDataRisk(**data_risk))
@@ -217,7 +217,7 @@ def upload_image(mydb, mycursor, user_id, message_content):
         text_predict_7days = f"ระดับความรุนแรงในอีก 7 วันข้างหน้า: {PREDICT_POWDER_7_14DAYS_TEXT[data_predict_7days['predicted_label']]}"
         text_predict_14days = f"ระดับความรุนแรงในอีก 14 วันข้างหน้า: {PREDICT_POWDER_7_14DAYS_TEXT[data_predict_14days['predicted_label']]}"
         text_disease = f"ความเสี่ยงในการระบาด: {PREDICT_POWDER_DISEASE_TEXT[data_predict_risk['predicted_label']]}"
-    elif (str(predicted_class) == "1" or str(predicted_class) == "2" or str(predicted_class) == "3"):
+    elif (str(predicted_class) == "0" or str(predicted_class) == "1" or str(predicted_class) == "2"):
         data_predict_7days = predict_newfall_7days(InputDataForecast(**data_predict))
         data_predict_14days = predict_newfall_14days(InputDataForecast(**data_predict))
         data_predict_risk = predict_newfall_risk(InputDataRisk(**data_risk))
