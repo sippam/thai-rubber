@@ -388,7 +388,7 @@ export class DatabaseComponent {
   }
 
   download() {
-    window.open('http://localhost:3000/api/download-zip', '_blank');
+    window.open('https://43.228.86.203/api/download-zip', '_blank');
   }
 
   handleDownloadCSV() {
