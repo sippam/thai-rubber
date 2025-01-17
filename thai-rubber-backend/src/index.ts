@@ -37,11 +37,11 @@ async function loopNPK() {
     const ph = 6.5 + (Math.random() * 2 - 1) * 0.08 * 6.5;     // 6.5 ± 8%
 
     const result = await axios.post("http://localhost:3000/api/v1/soil/post", {
-      N: parseFloat(n.toFixed(2)),              // Round to 2 decimal places
-      P: parseFloat(p.toFixed(2)),              // Round to 2 decimal places
-      K: parseFloat(k.toFixed(2)),              // Round to 2 decimal places
-      PH: parseFloat(ph.toFixed(2)),            // Round to 2 decimal places
-      Humidity: parseFloat(humidity.toFixed(2)), // Round to 2 decimal places
+      N: parseFloat(n.toFixed(1)),              // Round to 2 decimal places
+      P: parseFloat(p.toFixed(1)),              // Round to 2 decimal places
+      K: parseFloat(k.toFixed(1)),              // Round to 2 decimal places
+      PH: parseFloat(ph.toFixed(1)),            // Round to 2 decimal places
+      Humidity: parseFloat(humidity.toFixed(1)), // Round to 2 decimal places
     });
 
     // console.log("Data sent successfully:", result.data);
