@@ -29,27 +29,27 @@ app.use("/api", database);
 
 async function loopNPK() {
   try {
-    // Generate random values for each parameter within their defined ranges
-    const humidity = 30 + (Math.random() * 2 - 1) * 0.10 * 30; // 30 ± 10%
-    const n = 15 + (Math.random() * 2 - 1) * 0.15 * 15;        // 15 ± 15%
-    const p = 16 + (Math.random() * 2 - 1) * 0.21 * 16;        // 16 ± 21%
-    const k = 55 + (Math.random() * 2 - 1) * 0.25 * 55;        // 55 ± 25%
-    const ph = 6.5 + (Math.random() * 2 - 1) * 0.08 * 6.5;     // 6.5 ± 8%
+    // Generate random values for each parameter within their absolute ± ranges
+    const humidity = 30 + (Math.random() * 2 - 1) * 0.10; // 30 ± 0.10
+    const n = 15 + (Math.random() * 2 - 1) * 0.15;        // 15 ± 0.15
+    const p = 16 + (Math.random() * 2 - 1) * 0.21;        // 16 ± 0.21
+    const k = 55 + (Math.random() * 2 - 1) * 0.25;        // 55 ± 0.25
+    const ph = 6.5 + (Math.random() * 2 - 1) * 0.08;      // 6.5 ± 0.08
 
     const result = await axios.post("http://localhost:3000/api/v1/soil/post", {
-      N: parseFloat(n.toFixed(1)),              // Round to 2 decimal places
-      P: parseFloat(p.toFixed(1)),              // Round to 2 decimal places
-      K: parseFloat(k.toFixed(1)),              // Round to 2 decimal places
-      PH: parseFloat(ph.toFixed(1)),            // Round to 2 decimal places
-      Humidity: parseFloat(humidity.toFixed(1)), // Round to 2 decimal places
+      Humidity: parseFloat(humidity.toFixed(1)), // Round to 1 decimal place
+      N: parseFloat(n.toFixed(1)),              // Round to 1 decimal place
+      P: parseFloat(p.toFixed(1)),              // Round to 1 decimal place
+      K: parseFloat(k.toFixed(1)),              // Round to 1 decimal place
+      PH: parseFloat(ph.toFixed(1)),            // Round to 1 decimal place
     });
 
     // console.log("Data sent successfully:", result.data);
   } catch (error) {
     console.error("Error sending data to /api/v1/soil/post:", error);
   }
-
 }
+
 
 // Start the server
 app.listen(port, () => {
