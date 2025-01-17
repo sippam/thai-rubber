@@ -188,6 +188,10 @@ def handle_text_message(event):
 
     # Check if user is already registered
     is_register = have_user(mydb, mycursor, user_id)
+    if is_register and text == "ลงทะเบียนเข้าใช้งาน":
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(
+            text="คุณได้ลงทะเบียนเรียบร้อยแล้ว!"))
+        return
     
     if user_id not in user_register_state and text == "ลงทะเบียนเข้าใช้งาน":
         user_register_state[user_id] = "start"
@@ -195,7 +199,7 @@ def handle_text_message(event):
             "id": user_id, "line_name": profile.display_name}
         line_bot_api.reply_message(
             event.reply_token, TextSendMessage(text="กรุณากรอกเบอร์โทรติดต่อ"))
-    elif user_id in user_register_state:
+    elif user_id in user_register_state and not is_register:
         state = user_register_state[user_id]
         print("state", state)
         if state == "start":
@@ -271,18 +275,19 @@ def handle_text_message(event):
                 event.reply_token, TextSendMessage(text="ลงทะเบียนเรียบร้อย!"))
 
             # Editing process
-        elif state.startswith("edit_"):
-            line_bot_api.reply_message(
-                event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
+        # elif state.startswith("edit_"):
+        #     field = state.replace("edit_", "")
+        #     line_bot_api.reply_message(
+        #         event.reply_token, TextSendMessage(text=f"แก้ไข{field}เรียบร้อย!"))
 
         else:
             line_bot_api.reply_message(
                 event.reply_token, TextSendMessage(text="เกิดข้อผิดพลาด!"))
 
-    if is_register and text == "ลงทะเบียนเข้าใช้งาน":
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(
-            text="คุณได้ลงทะเบียนเรียบร้อยแล้ว!"))
-        return
+    # if is_register and text == "ลงทะเบียนเข้าใช้งาน":
+    #     line_bot_api.reply_message(event.reply_token, TextSendMessage(
+    #         text="คุณได้ลงทะเบียนเรียบร้อยแล้ว!"))
+    #     return
 
     # if user_id not in user_register_state and text == "ลงทะเบียนเข้าใช้งาน":
     #     user_register_state[user_id] = "start"
