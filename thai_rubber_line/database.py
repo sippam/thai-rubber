@@ -28,15 +28,15 @@ def initialize_db(mydb, mycursor):
 
 def register_user(mydb, mycursor, data):
     print("data", data)
-    id, line_name, tel, address, address_format, latitude, longitude, area, land_type, soil_type, rubber_type, weather_station, weather_serial = data.values()
+    id, line_name, tel, address, address_format, province, district, subdistrict, latitude, longitude, area, land_type, soil_type, rubber_type, weather_station, weather_serial = data.values()
     mycursor.execute("USE thai_rubber")
     sql = "INSERT INTO customers (id, line_name, tel) VALUES (%s, %s, %s)"
     value = (id, line_name, tel)
     mycursor.execute(sql, value)
 
     mycursor.execute("USE thai_rubber")
-    sql = "INSERT INTO address (id, address, address_format, latitude, longitude) VALUES (%s, %s, %s, %s, %s)"
-    value = (id, address, address_format, latitude, longitude)
+    sql = "INSERT INTO address (id, address, address_format, province, district, subdistrict, latitude, longitude) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+    value = (id, address, address_format, province, district, subdistrict, latitude, longitude)
     mycursor.execute(sql, value)
 
     mycursor.execute("USE thai_rubber")
