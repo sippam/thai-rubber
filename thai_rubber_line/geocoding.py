@@ -28,7 +28,7 @@ def get_geocode(address):
                     province = component['long_name']
                 if 'administrative_area_level_2' in component['types']:
                     district = component['long_name']
-                if 'locality' in component['types']:
+                if 'locality' or 'sublocality' or 'sublocality_level_1' in component['types']:
                     subdistrict = component['long_name']
 
             if province == "" or district == "" or subdistrict == "":
